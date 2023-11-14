@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<assembly
+        xmlns="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://maven.apache.org/plugins/maven-assembly-plugin/assembly/1.1.2 http://maven.apache.org/xsd/assembly-1.1.2.xsd">
+    <id>package</id>
+    <formats>
+        <format>zip</format>
+    </formats>
+
+    <fileSets>
+        <fileSet>
+            <directory>${appassembler.assemble.directory}</directory>
+            <outputDirectory>/</outputDirectory>
+            <directoryMode>0755</directoryMode>
+            <excludes>
+                <exclude>conf/mapper/**</exclude>
+                <exclude>conf/**/**.xml</exclude>
+                <exclude>conf/mybatis-generator/**</exclude>
+                <exclude>conf/META-INF/**</exclude>
+                <exclude>conf/**.properties</exclude>
+                <exclude>conf/**.yml</exclude>
+            </excludes>
+        </fileSet>
+        <fileSet>
+            <directoryMode>0755</directoryMode>
+            <directory>${basedir}/target/classes</directory>
+            <outputDirectory>conf</outputDirectory>
+            <fileMode>0755</fileMode>
+            <includes>
+                <include>*.properties</include>
+                <include>*.yml</include>
+            </includes>
+        </fileSet>
+
+    </fileSets>
+
+</assembly>
