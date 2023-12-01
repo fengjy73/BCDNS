@@ -1,11 +1,6 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
-<!--    <parent>
-        <groupId>cn.bif.baas</groupId>
-        <artifactId>baas-root</artifactId>
-        <version>2.1.0</version>
-    </parent>-->
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
@@ -27,60 +22,26 @@
         <nacos.config>2.2.5.RELEASE</nacos.config>
     </properties>
     <dependencies>
-        <!--<dependency>
-            <groupId>com.alibaba.cloud</groupId>
-            <artifactId>spring-cloud-starter-alibaba-nacos-config</artifactId>
-            <version>2.2.5.RELEASE</version>
-        </dependency>-->
-<!--        <dependency>-->
-<!--            <groupId>org.bif</groupId>-->
-<!--            <artifactId>bif-common</artifactId>-->
-<!--            <version>2.1.0-SNAPSHOT</version>-->
-<!--            <exclusions>-->
-<!--                <exclusion>-->
-<!--                    <groupId>org.springframework.boot</groupId>-->
-<!--                    <artifactId>spring-boot-starter-actuator</artifactId>-->
-<!--                </exclusion>-->
-<!--            </exclusions>-->
-<!--        </dependency>-->
-<!--        <dependency>-->
-<!--            <groupId>org.bif</groupId>-->
-<!--            <artifactId>bif-protocol</artifactId>-->
-<!--            <version>2.2.2-SNAPSHOT</version>-->
-<!--        </dependency>-->
-<!--        <dependency>-->
-<!--            <groupId>org.bif</groupId>-->
-<!--            <artifactId>bif-orc</artifactId>-->
-<!--            <version>2.1.0-SNAPSHOT</version>-->
-<!--        </dependency>-->
         <dependency>
             <groupId>com.alibaba</groupId>
             <artifactId>druid-spring-boot-starter</artifactId>
             <version>1.1.9</version>
         </dependency>
-
         <dependency>
             <groupId>org.redisson</groupId>
             <artifactId>redisson</artifactId>
             <version>3.11.0</version>
         </dependency>
-        <dependency>
-            <groupId>net.paoding</groupId>
-            <artifactId>paoding-rose-jade</artifactId>
-            <version>2.0.u01</version>
-        </dependency>
-        <dependency>
-            <groupId>net.paoding</groupId>
-            <artifactId>paoding-rose-web</artifactId>
-            <version>2.0.u01</version>
-        </dependency>
-
+<!--        <dependency>-->
+<!--            <groupId>net.paoding</groupId>-->
+<!--            <artifactId>paoding-rose-jade</artifactId>-->
+<!--            <version>2.0.u01</version>-->
+<!--        </dependency>-->
         <dependency>
             <groupId>com.auth0</groupId>
             <artifactId>java-jwt</artifactId>
-            <version>3.18.3</version>
+            <version>3.9.0</version>
         </dependency>
-
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
@@ -90,12 +51,35 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
-            <version>2.3.1.RELEASE</version>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-configuration-processor</artifactId>
+            <optional>true</optional>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-aop</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-jdbc</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>1.18.12</version>
+            <scope>provided</scope>
         </dependency>
         <dependency>
             <groupId>org.mybatis.spring.boot</groupId>
             <artifactId>mybatis-spring-boot-starter</artifactId>
             <version>2.2.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.mybatis</groupId>
+            <artifactId>mybatis</artifactId>
+            <version>3.5.12</version>
         </dependency>
         <dependency>
             <groupId>javax.validation</groupId>
@@ -107,21 +91,21 @@
             <artifactId>hibernate-validator</artifactId>
             <version>6.0.3.Final</version>
         </dependency>
-        <dependency>
-            <groupId>com.alipay.antchain.bridge</groupId>
-            <artifactId>antchain-bridge-plugin-lib</artifactId>
-            <version>0.2.0-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>com.alipay.antchain.bridge</groupId>
-            <artifactId>antchain-bridge-plugin-manager</artifactId>
-            <version>0.2.0-SNAPSHOT</version>
-        </dependency>
-        <dependency>
-            <groupId>com.alipay.antchain.bridge</groupId>
-            <artifactId>antchain-bridge-spi</artifactId>
-            <version>0.2.0-SNAPSHOT</version>
-        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>com.alipay.antchain.bridge</groupId>-->
+<!--            <artifactId>antchain-bridge-plugin-lib</artifactId>-->
+<!--            <version>0.2.0-SNAPSHOT</version>-->
+<!--        </dependency>-->
+<!--        <dependency>-->
+<!--            <groupId>com.alipay.antchain.bridge</groupId>-->
+<!--            <artifactId>antchain-bridge-plugin-manager</artifactId>-->
+<!--            <version>0.2.0-SNAPSHOT</version>-->
+<!--        </dependency>-->
+<!--        <dependency>-->
+<!--            <groupId>com.alipay.antchain.bridge</groupId>-->
+<!--            <artifactId>antchain-bridge-spi</artifactId>-->
+<!--            <version>0.2.0-SNAPSHOT</version>-->
+<!--        </dependency>-->
         <dependency>
             <groupId>com.alipay.antchain.bridge</groupId>
             <artifactId>antchain-bridge-commons</artifactId>
@@ -140,60 +124,56 @@
         <dependency>
             <groupId>redis.clients</groupId>
             <artifactId>jedis</artifactId>
-            <version>2.9.0</version>
+            <version>2.5.0</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter-openfeign</artifactId>
-            <version>2.2.6.RELEASE</version>
+            <version>2.2.1.RELEASE</version>
         </dependency>
         <dependency>
             <groupId>org.springframework.cloud</groupId>
             <artifactId>spring-cloud-starter</artifactId>
-            <version>2.2.6.RELEASE</version>
+            <version>2.2.1.RELEASE</version>
         </dependency>
+<!--        <dependency>-->
+<!--            <groupId>commons-dbcp</groupId>-->
+<!--            <artifactId>commons-dbcp</artifactId>-->
+<!--            <version>1.2.2</version>-->
+<!--        </dependency>-->
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
+            <version>8.0.32</version>
+        </dependency>
+        <dependency>
+            <groupId>junit</groupId>
+            <artifactId>junit</artifactId>
+            <version>4.13.2</version>
+            <scope>test</scope>
+        </dependency>
+<!--        <dependency>-->
+<!--            <groupId>com.alibaba</groupId>-->
+<!--            <artifactId>fastjson</artifactId>-->
+<!--            <version>1.2.83</version>-->
+<!--        </dependency>-->
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.8.6</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.11.0</version>
+        </dependency>
+        <dependency>
+            <groupId>commons-lang</groupId>
+            <artifactId>commons-lang</artifactId>
+            <version>2.3</version>
         </dependency>
     </dependencies>
     <profiles>
-        <profile>
-            <id>dev</id>
-            <properties>
-                <activatedProperties>dev</activatedProperties>
-            </properties>
-            <activation>
-                <activeByDefault>true</activeByDefault>
-            </activation>
-        </profile>
-        <profile>
-            <id>test</id>
-            <properties>
-                <activatedProperties>test</activatedProperties>
-            </properties>
-            <activation>
-                <activeByDefault>false</activeByDefault>
-            </activation>
-        </profile>
-        <profile>
-            <id>pre</id>
-            <properties>
-                <activatedProperties>pre</activatedProperties>
-            </properties>
-            <activation>
-                <activeByDefault>false</activeByDefault>
-            </activation>
-        </profile>
-        <profile>
-            <id>pro</id>
-            <properties>
-                <activatedProperties>pro</activatedProperties>
-            </properties>
-            <activation>
-                <activeByDefault>false</activeByDefault>
-            </activation>
-        </profile>
     </profiles>
     <build>
         <resources>
@@ -201,12 +181,20 @@
                 <filtering>true</filtering>
                 <directory>src/main/resources</directory>
                 <includes>
-                    <!--<include>application-${activatedProperties}.properties</include>-->
-                    <!--<include>application.yml</include>-->
-                    <include>application.properties</include>
+                    <include>**/*.properties</include>
+                    <include>**/*.xml</include>
                 </includes>
             </resource>
-
+            <resource>
+                <directory>src/main/java</directory>
+                <includes>
+                    <include>**/*.xml</include>
+                </includes>
+                <excludes>
+                    <exclude>**/*.yaml</exclude>
+                </excludes>
+                <filtering>true</filtering>
+            </resource>
         </resources>
         <plugins>
             <plugin>
@@ -296,7 +284,26 @@
                     </execution>
                 </executions>
             </plugin>
-
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <excludes>
+                        <exclude>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                        </exclude>
+                    </excludes>
+                    <outputDirectory>./target/boot</outputDirectory>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
                 <version>2.2.1</version>
@@ -328,4 +335,10 @@
         </plugins>
     </build>
 
+<!--    <repositories>-->
+<!--        <repository>-->
+<!--            <id>s01-oss-sonatype</id>-->
+<!--            <url>https://s01.oss.sonatype.org/content/repositories/snapshots/</url>-->
+<!--        </repository>-->
+<!--    </repositories>-->
 </project>
