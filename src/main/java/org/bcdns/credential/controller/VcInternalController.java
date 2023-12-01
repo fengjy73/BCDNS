@@ -6,6 +6,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.bcdns.credential.biz.VcInternalBiz;
 import org.bcdns.credential.dto.req.*;
 import org.bcdns.credential.dto.resp.*;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -13,9 +14,9 @@ import javax.validation.Valid;
 
 @Slf4j
 @RestController
-@RequestMapping("/vc")
+@RequestMapping("/internal/vc")
 public class VcInternalController {
-    @Resource
+    @Autowired
     private VcInternalBiz vcInternalBiz;
 
     @PostMapping(value = "/init")
@@ -41,12 +42,6 @@ public class VcInternalController {
         log.info("request url:{}******params:{}","/vc/detail", JSONObject.toJSON(requestBody));
         return vcInternalBiz.queryDetail(requestBody);
     }
-
-//    @PostMapping(value = "/issue")
-//    public DataResp<VcIssueRespDto> vcIssue(@Valid @RequestBody VcIssueReqDto requestBody) {
-//        log.info("request url:{}******params:{}","/vc/detail", JSONObject.toJSON(requestBody));
-//        return vcInternalBiz.vcIssue(requestBody);
-//    }
 
     @PostMapping(value = "/revocation")
     public DataResp<VcRevocationRespDto> revocationVc(@RequestHeader("accessToken") String accessToken, @Valid @RequestBody VcRevocationReqDto reqDto) {

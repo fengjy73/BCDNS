@@ -1,21 +1,22 @@
 package org.bcdns.credential.service;
 
-import org.bcdns.credential.dao.VcRootDAO;
-import org.bcdns.credential.dao.domain.VcRootDomain;
+import org.bcdns.credential.mapper.VcRootMapper;
+import org.bcdns.credential.model.VcRootDomain;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 
 @Service
 public class VcRootService {
-    @Resource
-    private VcRootDAO vcRootDAO;
+    @Autowired
+    private VcRootMapper vcRootMapper;
 
     public int insert(VcRootDomain vcRootDomain){
-        return vcRootDAO.insert(vcRootDomain);
+        return vcRootMapper.insert(vcRootDomain);
     }
 
     public VcRootDomain getVcRoot() {
-        return vcRootDAO.getVcRoot();
+        return vcRootMapper.getVcRoot();
     }
 }

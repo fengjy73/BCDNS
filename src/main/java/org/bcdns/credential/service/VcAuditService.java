@@ -1,25 +1,27 @@
 package org.bcdns.credential.service;
 
-import org.bcdns.credential.dao.VcAuditDAO;
-import org.bcdns.credential.dao.domain.VcAuditDomain;
+
+import org.bcdns.credential.mapper.VcAuditMapper;
+import org.bcdns.credential.model.VcAuditDomain;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 @Service
 public class VcAuditService {
 
-    @Resource
-    private VcAuditDAO vcAuditDAO;
+    @Autowired
+    private VcAuditMapper vcAuditMapper;
 
     public int insertAudit(VcAuditDomain vcAuditDomain){
-       return vcAuditDAO.insert(vcAuditDomain);
+       return vcAuditMapper.insert(vcAuditDomain);
     }
 
     public VcAuditDomain getAuditDomain(String applyNo){
-        return vcAuditDAO.getAuditDomain(applyNo);
+        return vcAuditMapper.getAuditDomain(applyNo);
     }
 
     public VcAuditDomain getVcIdByVcOwner(byte[] vcOwnerId) {
-        return vcAuditDAO.getVcIdByVcOwner(vcOwnerId);
+        return vcAuditMapper.getVcIdByVcOwner(vcOwnerId);
     }
 }

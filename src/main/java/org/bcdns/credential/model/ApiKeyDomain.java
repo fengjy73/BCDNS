@@ -1,12 +1,8 @@
-package org.bcdns.credential.dao.domain;
+package org.bcdns.credential.model;
 
 import lombok.Data;
-import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
-@Getter
-@Setter
 @Data
 @NoArgsConstructor
 public class ApiKeyDomain {
@@ -14,6 +10,6 @@ public class ApiKeyDomain {
     private String apiKey;
     private String apiSecret;
     private String issuerPrivateKey;
-    private byte[] issuerId;
+    private String issuerId;
     private Integer initTag;
 }

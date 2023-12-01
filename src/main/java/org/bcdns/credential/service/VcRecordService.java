@@ -1,10 +1,12 @@
 package org.bcdns.credential.service;
 
-import org.bcdns.credential.dao.VcRecordDAO;
-import org.bcdns.credential.dao.domain.VcRecordDomain;
-import org.bcdns.credential.dao.domain.VcRecordListDomain;
+
 import org.bcdns.credential.dto.req.VcApplyDetailReqDto;
 import org.bcdns.credential.dto.req.VcApplyListReqDto;
+import org.bcdns.credential.mapper.VcRecordMapper;
+import org.bcdns.credential.model.VcRecordDomain;
+import org.bcdns.credential.model.VcRecordListDomain;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -14,46 +16,46 @@ import java.util.List;
 @Service
 public class VcRecordService {
 
-    @Resource
-    private VcRecordDAO vcRecordDAO;
+    @Autowired
+    private VcRecordMapper vcRecordMapper;
 
     public int insert(VcRecordDomain vcRecordDomain){
-       return vcRecordDAO.insert(vcRecordDomain);
+       return vcRecordMapper.insert(vcRecordDomain);
     }
 
     public VcRecordDomain getVcRecord(String applyNo){
-        return vcRecordDAO.getVcRecord(applyNo);
+        return vcRecordMapper.getVcRecord(applyNo);
     }
 
     public VcRecordDomain getVcRecord4VcId(String vcId){
-        return vcRecordDAO.getVcRecord4VcId(vcId);
+        return vcRecordMapper.getVcRecord4VcId(vcId);
     }
 
     public VcRecordDomain getVcRecord4UserId(byte[] vcId) {
-        return vcRecordDAO.getVcRecord4UserId(vcId);
+        return vcRecordMapper.getVcRecord4UserId(vcId);
     }
 
-    public int updateAuditPassStatus(String applyNo, Integer status, String vcId, byte[] vcData, long updateTime){
-        return vcRecordDAO.updateAuditPassStatus(applyNo,status, vcId, vcData, updateTime);
+    public int updateAuditPassStatus(VcRecordDomain vcRecordDomain){
+        return vcRecordMapper.updateAuditPassStatus(vcRecordDomain);
     }
 
     public List<VcRecordListDomain> queryList(VcApplyListReqDto reqDto){
-        return vcRecordDAO.queryList(reqDto);
+        return vcRecordMapper.queryList(reqDto);
     }
 
     public int queryListCount(VcApplyListReqDto reqDto){
-        return vcRecordDAO.queryListCount(reqDto);
+        return vcRecordMapper.queryListCount(reqDto);
     }
 
     public VcRecordDomain queryDetail(VcApplyDetailReqDto reqDto){
-        return vcRecordDAO.queryDetail(reqDto);
+        return vcRecordMapper.queryDetail(reqDto);
     }
 
-    public Integer updateIsDownloadByVcId(Integer isDownload, String vcId) {
-        return vcRecordDAO.updateIsDownloadByVcId(isDownload, vcId);
+    public Integer updateIsDownloadByVcId(VcRecordDomain vcRecordDomain) {
+        return vcRecordMapper.updateIsDownloadByVcId(vcRecordDomain);
     }
 
-    public Integer updateRevokeStatus(String credential, Integer status, long updateTime) {
-        return vcRecordDAO.updateRevokeStatus(credential, status, updateTime);
+    public Integer updateRevokeStatus(VcRecordDomain vcRecordDomain) {
+        return vcRecordMapper.updateRevokeStatus(vcRecordDomain);
     }
 }

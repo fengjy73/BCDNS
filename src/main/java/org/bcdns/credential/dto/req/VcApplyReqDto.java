@@ -12,5 +12,6 @@ public class VcApplyReqDto {
     private String publicKey;
 
     private byte[] sign;
+
 }
 

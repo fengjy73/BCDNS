@@ -1,4 +1,4 @@
-package org.bcdns.credential.dao.domain;
+package org.bcdns.credential.model;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;

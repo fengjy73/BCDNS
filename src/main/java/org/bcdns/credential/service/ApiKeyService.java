@@ -1,25 +1,27 @@
 package org.bcdns.credential.service;
 
 
-import org.bcdns.credential.dao.ApiKeyDAO;
-import org.bcdns.credential.dao.domain.ApiKeyDomain;
+import org.bcdns.credential.mapper.ApiKeyMapper;
+import org.bcdns.credential.model.ApiKeyDomain;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 @Service
 public class ApiKeyService {
-    @Resource
-    private ApiKeyDAO apiKeyDAO;
+
+    @Autowired
+    private ApiKeyMapper apiKeyMapper;
 
     public int insert(ApiKeyDomain apiKeyDomain){
-        return apiKeyDAO.insert(apiKeyDomain);
+        return apiKeyMapper.insert(apiKeyDomain);
     }
 
-    public ApiKeyDomain getApiKeyByManagerId(byte[] managerId) {
-        return apiKeyDAO.getApiKeyByManagerId(managerId);
+    public ApiKeyDomain getApiKeyByManagerId(String managerId) {
+        return apiKeyMapper.getApiKeyByManagerId(managerId);
     }
 
     public ApiKeyDomain getApiKeyDomain(Integer id) {
-        return apiKeyDAO.getApiKeyDomain(id);
+        return apiKeyMapper.getApiKeyDomain(id);
     }
 }

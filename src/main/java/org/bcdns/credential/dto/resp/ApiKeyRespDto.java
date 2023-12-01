@@ -8,5 +8,5 @@ import com.alipay.antchain.bridge.commons.core.base.ObjectIdentity;
 public class ApiKeyRespDto {
     private String apiKey;
     private String apiSecret;
-    private ObjectIdentity issuerId;
+    private String issuerId;
 }
