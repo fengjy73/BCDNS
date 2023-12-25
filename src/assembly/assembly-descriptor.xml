@@ -32,7 +32,5 @@
                 <include>*.yml</include>
             </includes>
         </fileSet>
-
     </fileSets>
-
 </assembly>

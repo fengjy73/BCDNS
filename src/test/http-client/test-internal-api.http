@@ -1,0 +1,48 @@
+#### 凭证服务初始化
+POST {{host}}/internal/vc/init
+Content-Type: application/json
+Accept: application/json
+
+#### 发证方审核
+POST {{host}}/internal/vc/audit
+Content-Type: application/json
+Accept: application/json
+accessToken: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3N1ZXJJZCI6ImRpZDpiaWQ6ZWZNZGtHeUtmbWl6WE5wWHQzU0V2SkY4ZzU3bURDcEMiLCJhcGlLZXkiOiJ4cTkySmFpb2JiZXFFenpRIiwiaXNzIjoiQklGLUNIQUlOIiwiZXhwIjoxNzAzMTc2MDQ4fQ.Nxkajpq8QGsLWQC2DuoDLO8eGnk759RLFCQVs-sUYuU
+
+{
+  "applyNo": "1cc862a3d72c0f5c69eb320cfecd9a79",
+  "status": "2",
+  "reason": "test"
+}
+
+#### 申请列表
+POST {{host}}/internal/vc/list
+Content-Type: application/json
+Accept: application/json
+accessToken: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3N1ZXJJZCI6ImRpZDpiaWQ6ZWZNZGtHeUtmbWl6WE5wWHQzU0V2SkY4ZzU3bURDcEMiLCJhcGlLZXkiOiJ4cTkySmFpb2JiZXFFenpRIiwiaXNzIjoiQklGLUNIQUlOIiwiZXhwIjoxNzAzMTc2MDQ4fQ.Nxkajpq8QGsLWQC2DuoDLO8eGnk759RLFCQVs-sUYuU
+
+{
+  "status":[1,2,3,4]
+}
+
+#### 申请信息详情
+POST {{host}}/internal/vc/detail
+Content-Type: application/json
+Accept: application/json
+accessToken: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3N1ZXJJZCI6ImRpZDpiaWQ6ZWZNZGtHeUtmbWl6WE5wWHQzU0V2SkY4ZzU3bURDcEMiLCJhcGlLZXkiOiJ4cTkySmFpb2JiZXFFenpRIiwiaXNzIjoiQklGLUNIQUlOIiwiZXhwIjoxNzAzMTc2MDQ4fQ.Nxkajpq8QGsLWQC2DuoDLO8eGnk759RLFCQVs-sUYuU
+
+{
+  "applyNo": "da9d8967342e2f3746d19e482eadb640",
+  "credentialId": ""
+}
+
+#### 申请信息详情
+POST {{host}}/internal/vc/revocation
+Content-Type: application/json
+Accept: application/json
+accessToken: eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3N1ZXJJZCI6ImRpZDpiaWQ6ZWZNZGtHeUtmbWl6WE5wWHQzU0V2SkY4ZzU3bURDcEMiLCJhcGlLZXkiOiJ4cTkySmFpb2JiZXFFenpRIiwiaXNzIjoiQklGLUNIQUlOIiwiZXhwIjoxNzAzMTc2MDQ4fQ.Nxkajpq8QGsLWQC2DuoDLO8eGnk759RLFCQVs-sUYuU
+
+{
+  "credentialId": "did:bid:efqu7131W4z8fWL81HjBBXvpvU53oPxz",
+  "remark": "test"
+}

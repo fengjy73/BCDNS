@@ -5,8 +5,6 @@ import org.bcdns.credential.mapper.VcAuditMapper;
 import org.bcdns.credential.model.VcAuditDomain;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import javax.annotation.Resource;
 @Service
 public class VcAuditService {
 

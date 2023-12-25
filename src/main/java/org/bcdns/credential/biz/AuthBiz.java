@@ -1,5 +1,6 @@
 package org.bcdns.credential.biz;
 
+
 import org.bcdns.credential.common.constant.Constants;
 import org.bcdns.credential.common.utils.JwtUtil;
 import org.bcdns.credential.common.utils.RedisUtil;
@@ -22,6 +23,7 @@ import java.util.Map;
 public class AuthBiz {
 
     private static final Logger logger = LoggerFactory.getLogger(AuthBiz.class);
+
     @Autowired
     private ApiKeyService apiKeyService;
 

@@ -1,5 +1,6 @@
 package org.bcdns.credential.controller;
 
+
 import com.alibaba.fastjson.JSONObject;
 import lombok.extern.slf4j.Slf4j;
 import org.bcdns.credential.biz.AuthBiz;
@@ -23,7 +24,7 @@ public class AuthController {
 
     @PostMapping(value = "/get/accessToken")
     public DataResp<AccessTokenRespDto> getAccessToken(@Valid @RequestBody AccessTokenReqDto accessTokenReqDto) {
-        log.info("request url:{}******params:{}","/vc/get/accessToken", JSONObject.toJSON(accessTokenReqDto));
+        log.info("request url:{}******params:{}", "/vc/get/accessToken", JSONObject.toJSON(accessTokenReqDto));
         return authBiz.getAccessToken(accessTokenReqDto);
     }
 }

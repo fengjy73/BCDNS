@@ -1,0 +1,9 @@
+POST {{host}}/internal/vc/get/accessToken
+Content-Type: application/json
+Accept: application/json
+
+{
+  "apiKey": "xq92JaiobbeqEzzQ",
+  "apiSecret":"8e877a4cf8fdbd9f97ffbf95ae5a24198ae944bd",
+  "issuerId": "did:bid:efMdkGyKfmizXNpXt3SEvJF8g57mDCpC"
+}

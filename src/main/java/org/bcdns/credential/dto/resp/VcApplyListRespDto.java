@@ -30,7 +30,7 @@ public class VcApplyListRespDto {
     public static class IssueListDTO {
         private String applyNo;
         private String credentialId;
-        private String status;
+        private Integer status;
         private byte[] userId;
         private Long createTime;
         private Integer credentialType;

@@ -1,10 +1,10 @@
 package org.bcdns.credential.enums;
 
 public enum ExceptionEnum {
-    SUCCESS(0, "成功"),
-    PARAME_ERROR(1, "无效参数"),
+    SUCCESS(0, "success"),
+    PARAME_ERROR(1, "invalid param"),
 
-    SYS_ERROR(100100, "系统内部错误"),
+    SYS_ERROR(100100, "system error"),
 
     PLATFORM_REPEAT_INIT(100101, "Platform repeated initialization"),
 

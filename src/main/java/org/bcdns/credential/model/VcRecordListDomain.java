@@ -8,10 +8,10 @@ import lombok.NoArgsConstructor;
 public class VcRecordListDomain {
     private String applyNo;
     private String credentialId;
-    private String status;
+    private Integer status;
     private byte[] userId;
-    private Long createTime;
+    private long createTime;
     private Integer credentialType;
-    private Long auditTime;
+    private long auditTime;
     private Integer isDownload;
 }

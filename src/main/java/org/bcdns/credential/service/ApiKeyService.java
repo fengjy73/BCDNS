@@ -5,8 +5,6 @@ import org.bcdns.credential.mapper.ApiKeyMapper;
 import org.bcdns.credential.model.ApiKeyDomain;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import javax.annotation.Resource;
 @Service
 public class ApiKeyService {
 

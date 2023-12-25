@@ -12,13 +12,12 @@ import cn.bif.module.contract.BIFContractService;
 import cn.bif.module.encryption.key.PrivateKeyManager;
 import cn.bif.module.encryption.key.PublicKeyManager;
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.alipay.antchain.bridge.commons.bcdns.*;
 import com.alipay.antchain.bridge.commons.core.base.BIDInfoObjectIdentity;
-import com.alipay.antchain.bridge.commons.core.base.CrossChainDomain;
 import com.alipay.antchain.bridge.commons.core.base.ObjectIdentity;
 import com.alipay.antchain.bridge.commons.core.base.ObjectIdentityType;
-import com.alipay.antchain.bridge.commons.core.ptc.PTCTypeEnum;
 import com.alipay.antchain.bridge.commons.exception.AntChainBridgeCommonsException;
 import com.alipay.antchain.bridge.commons.exception.CommonsErrorCodeEnum;
 import org.bcdns.credential.common.constant.Constants;
@@ -73,16 +72,16 @@ public class VcExternalBiz {
     private void isBackbone(String publicKey) {
         PublicKeyManager publicKeyManager = new PublicKeyManager(publicKey);
         BIFSDK sdk = BIFSDK.getInstance(sdkUrl);
-        JSONObject params = new JSONObject();
-        params.put("address", publicKeyManager.getEncAddress());
-        JSONObject input = new JSONObject();
-        input.put("method", "getnodeinfo");
-        input.put("params", params);
-        BIFContractService contractService = sdk.getBIFContractService();
-        // Call contractQuery
+//        JSONObject params = new JSONObject();
+//        params.put("address", publicKeyManager.getEncAddress());
+//        JSONObject input = new JSONObject();
+//        input.put("method", "getnodeinfo");
+//        input.put("params", params);
+        String input = StrUtil.format("{\"method\":\"getnodeinfo\",\"params\":{\"address\":\"{}\"}}", publicKeyManager.getEncAddress());
         BIFContractCallRequest bifContractCallRequest = new BIFContractCallRequest();
-        bifContractCallRequest.setInput(input.toJSONString());
+        bifContractCallRequest.setInput(input);
         bifContractCallRequest.setContractAddress(dposContractAddress);
+        BIFContractService contractService = sdk.getBIFContractService();
         BIFContractCallResponse callResp = contractService.contractQuery(bifContractCallRequest);
         if(ExceptionEnum.SUCCESS.getErrorCode().equals(callResp.getErrorCode())){
             if(JSONObject.parseObject(JSONObject.toJSONString(callResp.getResult().getQueryRets().get(0))).getJSONObject("result") != null){
@@ -102,16 +101,17 @@ public class VcExternalBiz {
     private void isSuperNode(String publicKey) {
         PublicKeyManager publicKeyManager = new PublicKeyManager(publicKey);
         BIFSDK sdk = BIFSDK.getInstance(sdkUrl);
-        JSONObject params = new JSONObject();
-        params.put("address", publicKeyManager.getEncAddress());
-        JSONObject input = new JSONObject();
-        input.put("method", "getnodeinfo");
-        input.put("params", params);
-        BIFContractService contractService = sdk.getBIFContractService();
-        // Call contractQuery
+//        JSONObject params = new JSONObject();
+//        params.put("address", publicKeyManager.getEncAddress());
+//        JSONObject input = new JSONObject();
+//        input.put("method", "getnodeinfo");
+//        input.put("params", params);
+
+        String input = StrUtil.format("{\"method\":\"getnodeinfo\",\"params\":{\"address\":\"{}\"}}", publicKeyManager.getEncAddress());
         BIFContractCallRequest bifContractCallRequest = new BIFContractCallRequest();
-        bifContractCallRequest.setInput(input.toJSONString());
+        bifContractCallRequest.setInput(input);
         bifContractCallRequest.setContractAddress(dposContractAddress);
+        BIFContractService contractService = sdk.getBIFContractService();
         BIFContractCallResponse callResp = contractService.contractQuery(bifContractCallRequest);
 
         if(ExceptionEnum.SUCCESS.getErrorCode().equals(callResp.getErrorCode())){
@@ -130,9 +130,9 @@ public class VcExternalBiz {
     }
 
     private void isRelayer(String publicKey) {
-        //todo
         PublicKeyManager publicKeyManager = new PublicKeyManager(publicKey);
         ObjectIdentity objectIdentity = new ObjectIdentity(ObjectIdentityType.BID, publicKeyManager.getEncAddress().getBytes());
+        //ObjectIdentity objectIdentity = new BIDInfoObjectIdentity(publicKeyManager.getEncAddress());
         VcAuditDomain vcAuditDomain = vcAuditService.getVcIdByVcOwner(objectIdentity.encode());
         if (Tools.isNull(vcAuditDomain)) {
             throw new APIException(ExceptionEnum.CREDENTIAL_NOT_EXIST);
@@ -180,108 +180,10 @@ public class VcExternalBiz {
     }
 
     public DataResp<VcApplyRespDto> vcApply(VcApplyReqDto vcApplyReqDto) {
-        //test ptc
-//        PrivateKeyManager privateKeyManager = new PrivateKeyManager("priSPKtsBa7FZVFH98WTBUiCS2zJ1fRyExFRpU1aQuLt4QYZws");
-//        KeyPairEntity keyPair = KeyPairEntity.getBidAndKeyPair();
-//        BIDpublicKeyOperation[] biDpublicKeyOperation = new BIDpublicKeyOperation[2];
-//        biDpublicKeyOperation[0] = new BIDpublicKeyOperation();
-//        biDpublicKeyOperation[0].setType(keyPair.getKeyType());
-//        biDpublicKeyOperation[0].setPublicKeyHex(keyPair.getEncPublicKey());
-//        BIDDocumentOperation bidDocumentOperation = new BIDDocumentOperation();
-//        bidDocumentOperation.setPublicKey(biDpublicKeyOperation);
-//
-//        AbstractCrossChainCertificate certificate = CrossChainCertificateFactory.createCrossChainCertificate(
-//                CrossChainCertificateV1.MY_VERSION,
-//                KeyPairEntity.getBidAndKeyPair().getEncAddress(),
-//                new ObjectIdentity(ObjectIdentityType.BID, privateKeyManager.getEncAddress().getBytes()),
-//                DateUtil.currentSeconds(),
-//                DateUtil.offsetDay(new Date(), 365).getTime() / 1000,
-//                new PTCCredentialSubject(
-//                        "V1",
-//                        "test",
-//                        PTCTypeEnum.BLOCKCHAIN,
-//                        new ObjectIdentity(ObjectIdentityType.BID, keyPair.getEncAddress().getBytes()),
-//                        JsonUtils.toJSONString(bidDocumentOperation).getBytes()
-//                )
-//        );
-//
-//        byte[] msg = certificate.getEncodedToSign();
-//        vcApplyReqDto.setContent(msg);
-//        vcApplyReqDto.setCredentialType(2);
-//        vcApplyReqDto.setPublicKey(privateKeyManager.getEncPublicKey());
-//        vcApplyReqDto.setSign(privateKeyManager.sign(msg));
-
-        //test relay
-        PrivateKeyManager privateKeyManager = new PrivateKeyManager("priSPKUudyVAi5WrhHJU1vCJZYyBL5DNd36MPhbYgHuDPz5E7r");
-        KeyPairEntity keyPair = KeyPairEntity.getBidAndKeyPair();
-        BIDpublicKeyOperation[] biDpublicKeyOperation = new BIDpublicKeyOperation[2];
-        biDpublicKeyOperation[0] = new BIDpublicKeyOperation();
-        PrivateKeyManager privateKeyManager1 = new PrivateKeyManager(keyPair.getEncPrivateKey());
-        biDpublicKeyOperation[0].setType(privateKeyManager1.getKeyType());
-        biDpublicKeyOperation[0].setPublicKeyHex(keyPair.getEncPublicKey());
-        BIDDocumentOperation bidDocumentOperation = new BIDDocumentOperation();
-        bidDocumentOperation.setPublicKey(biDpublicKeyOperation);
-
-        AbstractCrossChainCertificate certificate = CrossChainCertificateFactory.createCrossChainCertificate(
-                CrossChainCertificateV1.MY_VERSION,
-                KeyPairEntity.getBidAndKeyPair().getEncAddress(),
-                new ObjectIdentity(ObjectIdentityType.BID, privateKeyManager.getEncAddress().getBytes()),
-                DateUtil.currentSeconds(),
-                DateUtil.offsetDay(new Date(), 365).getTime() / 1000,
-                new RelayerCredentialSubject(
-                        "V1",
-                        "test",
-                        new ObjectIdentity(ObjectIdentityType.BID, keyPair.getEncAddress().getBytes()),
-                        JsonUtils.toJSONString(bidDocumentOperation).getBytes()
-                )
-        );
-        logger.info("relayer private key: " + keyPair.getEncPrivateKey());
-        logger.info("relayer public key: " + keyPair.getEncPublicKey());
-        logger.info("relayer address: " + keyPair.getEncAddress());
-
-        byte[] msg = certificate.getEncodedToSign();
-        vcApplyReqDto.setContent(msg);
-        vcApplyReqDto.setCredentialType(3);
-        vcApplyReqDto.setPublicKey(privateKeyManager.getEncPublicKey());
-        vcApplyReqDto.setSign(privateKeyManager.sign(msg));
-
-        //test domain name
-//        PrivateKeyManager privateKeyManager = new PrivateKeyManager("priSPKUudyVAi5WrhHJU1vCJZYyBL5DNd36MPhbYgHuDPz5E7r");
-//        KeyPairEntity keyPair = KeyPairEntity.getBidAndKeyPair();
-//        BIDpublicKeyOperation[] biDpublicKeyOperation = new BIDpublicKeyOperation[2];
-//        biDpublicKeyOperation[0] = new BIDpublicKeyOperation();
-//        biDpublicKeyOperation[0].setPublicKeyHex(keyPair.getEncPublicKey());
-//        BIDDocumentOperation bidDocumentOperation = new BIDDocumentOperation();
-//        bidDocumentOperation.setPublicKey(biDpublicKeyOperation);
-//
-//        AbstractCrossChainCertificate certificate = CrossChainCertificateFactory.createCrossChainCertificate(
-//                CrossChainCertificateV1.MY_VERSION,
-//                KeyPairEntity.getBidAndKeyPair().getEncAddress(),
-//                new ObjectIdentity(ObjectIdentityType.BID, privateKeyManager.getEncAddress().getBytes()),
-//                DateUtil.currentSeconds(),
-//                DateUtil.offsetDay(new Date(), 365).getTime() / 1000,
-//                new DomainNameCredentialSubject(
-//                        DomainNameCredentialSubject.CURRENT_VERSION,
-//                        DomainNameTypeEnum.DOMAIN_NAME,
-//                        new CrossChainDomain(".com"),
-//                        new CrossChainDomain("catchain.com"),
-//                        new ObjectIdentity(ObjectIdentityType.BID, keyPair.getEncAddress().getBytes()),
-//                        JsonUtils.toJSONString(bidDocumentOperation).getBytes()
-//                )
-//        );
-//
-//        byte[] msg = certificate.getEncodedToSign();
-//        vcApplyReqDto.setContent(msg);
-//        vcApplyReqDto.setCredentialType(1);
-//        vcApplyReqDto.setPublicKey(privateKeyManager.getEncPublicKey());
-//        vcApplyReqDto.setSign(privateKeyManager.sign(msg));
-
-        DataResp<VcApplyRespDto> dataResp = new DataResp<VcApplyRespDto>();
+        DataResp<VcApplyRespDto> dataResp = new DataResp<>();
         String publicKey = vcApplyReqDto.getPublicKey();
-
         try {
             //check
-            //todo test
             checkVcApply(publicKey, vcApplyReqDto);
             String applyNo = IdGenerator.createApplyNo();
             VcRecordDomain domain = buildVcRecordDomain(applyNo, publicKey, vcApplyReqDto);
@@ -306,13 +208,8 @@ public class VcExternalBiz {
         domain.setCredentialType(vcApplyReqDto.getCredentialType());
         domain.setStatus(StatusEnum.APPLYING.getCode());
         domain.setPublicKey(vcApplyReqDto.getPublicKey());
-        ObjectIdentity objectIdentity = null;
-        if (PublicKeyManager.isPublicKeyValid(publicKey)) {
-            PublicKeyManager publicKeyManager = new PublicKeyManager(publicKey);
-            objectIdentity = new ObjectIdentity(ObjectIdentityType.BID, publicKeyManager.getEncAddress().getBytes());
-        } else {
-            objectIdentity = new ObjectIdentity(ObjectIdentityType.X509_PUBLIC_KEY_INFO, publicKey.getBytes());
-        }
+        PublicKeyManager publicKeyManager = new PublicKeyManager(publicKey);
+        ObjectIdentity objectIdentity = new ObjectIdentity(ObjectIdentityType.BID, publicKeyManager.getEncAddress().getBytes());
         domain.setUserId(objectIdentity.encode());
         domain.setCreateTime(DateUtil.currentSeconds());
         domain.setIsDownload(0);
@@ -346,7 +243,7 @@ public class VcExternalBiz {
     }
 
     public DataResp<QueryStatusRespDto> vcStatus(VcInfoReqDto reqDto) {
-        DataResp<QueryStatusRespDto> dataResp = new DataResp<QueryStatusRespDto>();
+        DataResp<QueryStatusRespDto> dataResp = new DataResp<>();
         try {
             String credentialId = reqDto.getCredentialId();
             VcRecordDomain vcRecordDomain = vcRecordService.getVcRecord4VcId(credentialId);
@@ -355,8 +252,7 @@ public class VcExternalBiz {
             if(Tools.isNull(vcRecordDomain)){
                 throw new APIException(ExceptionEnum.CREDENTIAL_NOT_EXIST);
             } else {
-                ObjectIdentity objectIdentity = new ObjectIdentity(ObjectIdentityType.BID, vcRecordDomain.getUserId());
-                respDto.setUserId(objectIdentity);
+                respDto.setUserId(ObjectIdentity.decode(vcRecordDomain.getUserId()));
                 respDto.setStatus(vcRecordDomain.getStatus());
             }
             dataResp.setData(respDto);
@@ -371,7 +267,7 @@ public class VcExternalBiz {
     }
 
     public DataResp<VcInfoRespDto> vcDownload(VcInfoReqDto reqDto) {
-        DataResp<VcInfoRespDto> dataResp = new DataResp<VcInfoRespDto>();
+        DataResp<VcInfoRespDto> dataResp = new DataResp<>();
         String vcId = reqDto.getCredentialId();
         String lockKey = Constants.LOCK_CREDENTIAL_DOWNLOAD_PREFIX + vcId;
         try {
@@ -383,7 +279,7 @@ public class VcExternalBiz {
             VcRecordDomain vcRecordDomain = vcRecordService.getVcRecord4VcId(vcId);
             if(Tools.isNull(vcRecordDomain)){
                 throw new APIException(ExceptionEnum.CREDENTIAL_NOT_EXIST);
-            }else if(vcRecordDomain.getIsDownload().equals(true)){
+            }else if(vcRecordDomain.getIsDownload().equals(1)){
                 throw new APIException(ExceptionEnum.CREDENTIAL_IS_DOWNLOAD);
             }
             vcRecordDomain.setIsDownload(1);
@@ -404,7 +300,7 @@ public class VcExternalBiz {
     }
 
     public DataResp<VcRootRespDto> getVcRoot() {
-        DataResp<VcRootRespDto> dataResp = new DataResp<VcRootRespDto>();
+        DataResp<VcRootRespDto> dataResp = new DataResp<>();
         try {
             VcRootDomain vcRootDomain = vcRootService.getVcRoot();
             VcRootRespDto vcRootRespDto = new VcRootRespDto();

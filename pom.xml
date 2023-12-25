@@ -5,7 +5,7 @@
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
         <version>2.3.1.RELEASE</version>
-        <relativePath/> <!-- lookup parent from repository -->
+        <relativePath/>
     </parent>
     <groupId>org.bcdns</groupId>
     <artifactId>bcdns-credential-server</artifactId>
@@ -19,7 +19,6 @@
         <daemon.id>launch</daemon.id>
         <appassembler.target>${project.build.directory}/appassembler</appassembler.target>
         <appassembler.assemble.directory>${appassembler.target}/jsw/${daemon.id}</appassembler.assemble.directory>
-        <nacos.config>2.2.5.RELEASE</nacos.config>
     </properties>
     <dependencies>
         <dependency>
@@ -32,11 +31,6 @@
             <artifactId>redisson</artifactId>
             <version>3.11.0</version>
         </dependency>
-<!--        <dependency>-->
-<!--            <groupId>net.paoding</groupId>-->
-<!--            <artifactId>paoding-rose-jade</artifactId>-->
-<!--            <version>2.0.u01</version>-->
-<!--        </dependency>-->
         <dependency>
             <groupId>com.auth0</groupId>
             <artifactId>java-jwt</artifactId>
@@ -56,14 +50,6 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-configuration-processor</artifactId>
             <optional>true</optional>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-aop</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-jdbc</artifactId>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
@@ -91,21 +77,6 @@
             <artifactId>hibernate-validator</artifactId>
             <version>6.0.3.Final</version>
         </dependency>
-<!--        <dependency>-->
-<!--            <groupId>com.alipay.antchain.bridge</groupId>-->
-<!--            <artifactId>antchain-bridge-plugin-lib</artifactId>-->
-<!--            <version>0.2.0-SNAPSHOT</version>-->
-<!--        </dependency>-->
-<!--        <dependency>-->
-<!--            <groupId>com.alipay.antchain.bridge</groupId>-->
-<!--            <artifactId>antchain-bridge-plugin-manager</artifactId>-->
-<!--            <version>0.2.0-SNAPSHOT</version>-->
-<!--        </dependency>-->
-<!--        <dependency>-->
-<!--            <groupId>com.alipay.antchain.bridge</groupId>-->
-<!--            <artifactId>antchain-bridge-spi</artifactId>-->
-<!--            <version>0.2.0-SNAPSHOT</version>-->
-<!--        </dependency>-->
         <dependency>
             <groupId>com.alipay.antchain.bridge</groupId>
             <artifactId>antchain-bridge-commons</artifactId>
@@ -117,63 +88,43 @@
             <version>1.0.2</version>
         </dependency>
         <dependency>
-            <groupId>org.example</groupId>
-            <artifactId>antchain-bridge-bcdns</artifactId>
-            <version>0.2.0-SNAPSHOT</version>
-        </dependency>
-        <dependency>
             <groupId>redis.clients</groupId>
             <artifactId>jedis</artifactId>
             <version>2.5.0</version>
         </dependency>
         <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter-openfeign</artifactId>
-            <version>2.2.1.RELEASE</version>
+            <groupId>commons-dbcp</groupId>
+            <artifactId>commons-dbcp</artifactId>
+            <version>1.2.2</version>
         </dependency>
-        <dependency>
-            <groupId>org.springframework.cloud</groupId>
-            <artifactId>spring-cloud-starter</artifactId>
-            <version>2.2.1.RELEASE</version>
-        </dependency>
-<!--        <dependency>-->
-<!--            <groupId>commons-dbcp</groupId>-->
-<!--            <artifactId>commons-dbcp</artifactId>-->
-<!--            <version>1.2.2</version>-->
-<!--        </dependency>-->
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
             <version>8.0.32</version>
         </dependency>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.13.2</version>
-            <scope>test</scope>
-        </dependency>
-<!--        <dependency>-->
-<!--            <groupId>com.alibaba</groupId>-->
-<!--            <artifactId>fastjson</artifactId>-->
-<!--            <version>1.2.83</version>-->
-<!--        </dependency>-->
-        <dependency>
-            <groupId>com.google.code.gson</groupId>
-            <artifactId>gson</artifactId>
-            <version>2.8.6</version>
-        </dependency>
-        <dependency>
-            <groupId>com.fasterxml.jackson.core</groupId>
-            <artifactId>jackson-databind</artifactId>
-            <version>2.11.0</version>
-        </dependency>
-        <dependency>
-            <groupId>commons-lang</groupId>
-            <artifactId>commons-lang</artifactId>
-            <version>2.3</version>
-        </dependency>
     </dependencies>
     <profiles>
+        <profile>
+            <id>dev</id>
+            <properties>
+                <activatedProperties>dev</activatedProperties>
+            </properties>
+        </profile>
+        <profile>
+            <id>test</id>
+            <properties>
+                <activatedProperties>test</activatedProperties>
+            </properties>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+        </profile>
+        <profile>
+            <id>pro</id>
+            <properties>
+                <activatedProperties>pro</activatedProperties>
+            </properties>
+        </profile>
     </profiles>
     <build>
         <resources>
@@ -284,26 +235,7 @@
                     </execution>
                 </executions>
             </plugin>
-            <plugin>
-                <groupId>org.springframework.boot</groupId>
-                <artifactId>spring-boot-maven-plugin</artifactId>
-                <configuration>
-                    <excludes>
-                        <exclude>
-                            <groupId>org.projectlombok</groupId>
-                            <artifactId>lombok</artifactId>
-                        </exclude>
-                    </excludes>
-                    <outputDirectory>./target/boot</outputDirectory>
-                </configuration>
-                <executions>
-                    <execution>
-                        <goals>
-                            <goal>repackage</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
+
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
                 <version>2.2.1</version>
@@ -334,11 +266,4 @@
             </plugin>
         </plugins>
     </build>
-
-<!--    <repositories>-->
-<!--        <repository>-->
-<!--            <id>s01-oss-sonatype</id>-->
-<!--            <url>https://s01.oss.sonatype.org/content/repositories/snapshots/</url>-->
-<!--        </repository>-->
-<!--    </repositories>-->
 </project>
