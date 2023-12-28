@@ -84,6 +84,11 @@
         </dependency>
         <dependency>
             <groupId>cn.bitfactory</groupId>
+            <artifactId>bid-sdk</artifactId>
+            <version>1.0.2</version>
+        </dependency>
+        <dependency>
+            <groupId>cn.bitfactory</groupId>
             <artifactId>bif-chain-sdk</artifactId>
             <version>1.0.2</version>
         </dependency>

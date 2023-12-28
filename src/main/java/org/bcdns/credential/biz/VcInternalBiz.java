@@ -166,24 +166,18 @@ public class VcInternalBiz {
     }
 
     private String getPTCInput(AbstractCrossChainCertificate certificate) {
-//        String args = "'" + certificate.getId() + "','" + Base64.encode(certificate.encode()) + "'";
-//        return "{\"function\":\"addCertificate(string,bytes)\",\"args\":\""+ args+"\"}";
         return StrUtil.format("{\"function\":\"addCertificate(string,bytes)\",\"args\":\"'{}','{}'\"}", certificate.getId(), Base64.encode(certificate.encode()));
     }
 
     private String getRelayInput(AbstractCrossChainCertificate certificate) {
         String relayAddress = BIDHelper.encAddress(BIDHelper.getKeyTypeFromPublicKey(CrossChainCertificateUtil.getPublicKeyFromCrossChainCertificate(certificate)),
                 CrossChainCertificateUtil.getRawPublicKeyFromCrossChainCertificate(certificate));
-//        String args = "'" + certificate.getId() + "','" + Base64.encode(certificate.encode()) + "'," + relayAddress;
-//        return "{\"function\":\"addCertificate(string,bytes,address)\",\"args\":\""+ args +"\"}";
         return StrUtil.format("{\"function\":\"addCertificate(string,bytes,address)\",\"args\":\"'{}','{}',{}\"}", certificate.getId(), Base64.encode(certificate.encode()), relayAddress);
     }
 
     private String getDomainNameInput(AbstractCrossChainCertificate certificate) {
         DomainNameCredentialSubject domainNameCredentialSubject = DomainNameCredentialSubject.decode(certificate.getCredentialSubject());
         CrossChainDomain crossChainDomain = domainNameCredentialSubject.getDomainName();
-//        String args = "'" + certificate.getId() + "','" + crossChainDomain.getDomain() + "','" + Base64.encode(certificate.encode()) + "'";
-//        return "{\"function\":\"addCertificate(string,string,bytes)\",\"args\":\""+ args+"\"}";
         return StrUtil.format("{\"function\":\"addCertificate(string,bytes,bytes)\",\"args\":\"'{}','{}','{}'\"}", certificate.getId(), crossChainDomain.getDomain(), Base64.encode(certificate.encode()));
     }
 
@@ -572,7 +566,6 @@ public class VcInternalBiz {
     private String revokeTxSubmit(String credentialId, Integer credentialType, String issuerPrivateKey, String issuerId) {
         String targetContract = "";
         String input = StrUtil.format("{\"function\":\"revokeCertificate(string)\",\"args\":\"'{}'\"}", credentialId);
-        //String input = "{\"function\":\"revokeCertificate(string)\",\"args\":\"'"+ credentialId+"'\"}";
         switch (CrossChainCertificateTypeEnum.valueOf(credentialType.byteValue())) {
             case PROOF_TRANSFORMATION_COMPONENT_CERTIFICATE:
                 targetContract = ptcContractAddress;

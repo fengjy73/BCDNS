@@ -52,6 +52,9 @@ public class VcExternalBiz {
     @Value("${dpos.contract.address}")
     private String dposContractAddress;
 
+    @Value("${run.type}")
+    private int runType;
+
     private static final Logger logger = LoggerFactory.getLogger(VcExternalBiz.class);
 
     @Autowired
@@ -72,11 +75,6 @@ public class VcExternalBiz {
     private void isBackbone(String publicKey) {
         PublicKeyManager publicKeyManager = new PublicKeyManager(publicKey);
         BIFSDK sdk = BIFSDK.getInstance(sdkUrl);
-//        JSONObject params = new JSONObject();
-//        params.put("address", publicKeyManager.getEncAddress());
-//        JSONObject input = new JSONObject();
-//        input.put("method", "getnodeinfo");
-//        input.put("params", params);
         String input = StrUtil.format("{\"method\":\"getnodeinfo\",\"params\":{\"address\":\"{}\"}}", publicKeyManager.getEncAddress());
         BIFContractCallRequest bifContractCallRequest = new BIFContractCallRequest();
         bifContractCallRequest.setInput(input);
@@ -101,12 +99,6 @@ public class VcExternalBiz {
     private void isSuperNode(String publicKey) {
         PublicKeyManager publicKeyManager = new PublicKeyManager(publicKey);
         BIFSDK sdk = BIFSDK.getInstance(sdkUrl);
-//        JSONObject params = new JSONObject();
-//        params.put("address", publicKeyManager.getEncAddress());
-//        JSONObject input = new JSONObject();
-//        input.put("method", "getnodeinfo");
-//        input.put("params", params);
-
         String input = StrUtil.format("{\"method\":\"getnodeinfo\",\"params\":{\"address\":\"{}\"}}", publicKeyManager.getEncAddress());
         BIFContractCallRequest bifContractCallRequest = new BIFContractCallRequest();
         bifContractCallRequest.setInput(input);
@@ -132,7 +124,6 @@ public class VcExternalBiz {
     private void isRelayer(String publicKey) {
         PublicKeyManager publicKeyManager = new PublicKeyManager(publicKey);
         ObjectIdentity objectIdentity = new ObjectIdentity(ObjectIdentityType.BID, publicKeyManager.getEncAddress().getBytes());
-        //ObjectIdentity objectIdentity = new BIDInfoObjectIdentity(publicKeyManager.getEncAddress());
         VcAuditDomain vcAuditDomain = vcAuditService.getVcIdByVcOwner(objectIdentity.encode());
         if (Tools.isNull(vcAuditDomain)) {
             throw new APIException(ExceptionEnum.CREDENTIAL_NOT_EXIST);
@@ -184,7 +175,9 @@ public class VcExternalBiz {
         String publicKey = vcApplyReqDto.getPublicKey();
         try {
             //check
-            checkVcApply(publicKey, vcApplyReqDto);
+            if (runType != 0) {
+                checkVcApply(publicKey, vcApplyReqDto);
+            }
             String applyNo = IdGenerator.createApplyNo();
             VcRecordDomain domain = buildVcRecordDomain(applyNo, publicKey, vcApplyReqDto);
             vcRecordService.insert(domain);
