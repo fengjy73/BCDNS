@@ -150,23 +150,24 @@ public class VcExternalBiz {
         if(!verifyResult){
             throw new APIException(ExceptionEnum.SIGN_ERROR);
         }
-
-        Integer vcType = vcApplyReqDto.getCredentialType();
-        switch (CrossChainCertificateTypeEnum.valueOf(vcType.byteValue())){
-            case PROOF_TRANSFORMATION_COMPONENT_CERTIFICATE:
-                isBackbone(publicKey);
-                break;
-            case RELAYER_CERTIFICATE:
-                isSuperNode(publicKey);
-                break;
-            case DOMAIN_NAME_CERTIFICATE:
-                isRelayer(publicKey);
-                break;
-            default:
-                throw new AntChainBridgeCommonsException(
-                        CommonsErrorCodeEnum.BCDNS_UNSUPPORTED_CA_TYPE,
-                        "failed to parse type from subject class " + vcType
-                );
+        if (runType != 0) {
+            Integer vcType = vcApplyReqDto.getCredentialType();
+            switch (CrossChainCertificateTypeEnum.valueOf(vcType.byteValue())){
+                case PROOF_TRANSFORMATION_COMPONENT_CERTIFICATE:
+                    isBackbone(publicKey);
+                    break;
+                case RELAYER_CERTIFICATE:
+                    isSuperNode(publicKey);
+                    break;
+                case DOMAIN_NAME_CERTIFICATE:
+                    isRelayer(publicKey);
+                    break;
+                default:
+                    throw new AntChainBridgeCommonsException(
+                            CommonsErrorCodeEnum.BCDNS_UNSUPPORTED_CA_TYPE,
+                            "failed to parse type from subject class " + vcType
+                    );
+            }
         }
     }
 
@@ -175,9 +176,7 @@ public class VcExternalBiz {
         String publicKey = vcApplyReqDto.getPublicKey();
         try {
             //check
-            if (runType != 0) {
-                checkVcApply(publicKey, vcApplyReqDto);
-            }
+            checkVcApply(publicKey, vcApplyReqDto);
             String applyNo = IdGenerator.createApplyNo();
             VcRecordDomain domain = buildVcRecordDomain(applyNo, publicKey, vcApplyReqDto);
             vcRecordService.insert(domain);

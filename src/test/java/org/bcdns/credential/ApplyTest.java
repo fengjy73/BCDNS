@@ -96,7 +96,14 @@ public class ApplyTest {
 
     @Test
     public void testRelayApply01() throws Exception {
-        PrivateKeyManager privateKeyManager = new PrivateKeyManager("priSPKeThUrwmBvigbe153GWQXRDuMUWwpM8fRBs4eQ82sQSgQ");
+//        "address": "did:bid:efNurcfDs2XFV75jUFvi3MqYJuyphxjk",
+//        "address_raw": "4f2497ec8d46137410df0436115ef2385ec22ac17ddb",
+//        "private_key": "priSPKncqxV7SR5bJgTWxBpLDAotDbBsrGNAVky34VKzLXHppi",
+//        "private_key_aes": "b6be1758109f9b3f51553cfe1322d84b8eb80e46e88948bfd8624f0d53315a0f75ecbde55b4ab24deda45093566436b26b44fdc4a513e4a29742335f7fac74b9",
+//        "public_key": "b065662fdd2fb283d72aa829e7694e0675c0b8ded947dfa64b0b4768ccea8b30f06801",
+//        "public_key_raw": "2fdd2fb283d72aa829e7694e0675c0b8ded947dfa64b0b4768ccea8b30f06801",
+//        "sign_type": "ed25519"
+        PrivateKeyManager privateKeyManager = new PrivateKeyManager("priSPKncqxV7SR5bJgTWxBpLDAotDbBsrGNAVky34VKzLXHppi");
         BIDpublicKeyOperation[] biDpublicKeyOperation = new BIDpublicKeyOperation[1];
         biDpublicKeyOperation[0] = new BIDpublicKeyOperation();
         biDpublicKeyOperation[0].setType(KeyType.ED25519);

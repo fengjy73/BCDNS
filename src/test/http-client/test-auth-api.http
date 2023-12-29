@@ -1,3 +1,4 @@
+#### 获取access token
 POST {{host}}/internal/vc/get/accessToken
 Content-Type: application/json
 Accept: application/json

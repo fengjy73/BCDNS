@@ -174,15 +174,7 @@ run.type=0 //BCDNS服务运行模式，0为开发者体验模式，1为实际生
 
 # 社区治理
 
-欢迎您以任何形式参与社区建设。
-
-您可以通过以下方式参与社区讨论
-
-- 微信交流群
-
-<img src="./src/docs/images/微信交流群.jpg" style="zoom:67%;" />
-
-
+欢迎您参与[开发者社区](https://bif-doc.readthedocs.io/zh-cn/2.0.0/other/开发者社区.html)进行讨论和建设。
 
 # License
 
