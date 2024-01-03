@@ -111,9 +111,11 @@ tree .
 
 ## 部署合约
 
-PTC管理合约、Relayer管理合约和域名管理合约的合约abi code在`合约abi.md`文档中。也可选择自行修改合约代码并编译，参考[星火链Solidity编辑器](https://bif-doc.readthedocs.io/zh-cn/2.0.0/contract/Solidity%E5%90%88%E7%BA%A6%E4%BB%8B%E7%BB%8D.html#id4)。
+要部署的合约一个有三个，PTCManager.sol、RelayerManager.sol和DomainNameManager.sol，合约代码在`src/main/resources/contract目录中`。合约部署是将以上3个合约部署到星火链测试网上。
 
-合约部署请参考[快速接入星火链](https://bif-doc.readthedocs.io/zh-cn/2.0.0/quickstart/%E5%BF%AB%E9%80%9F%E6%8E%A5%E5%85%A5%E6%98%9F%E7%81%AB%E9%93%BE.html#solidity)。
+首先需要一个星火链账户拥有星火令才能正常往链上部署合约，测试网星火令可以通过[星火插件钱包](https://bif-doc.readthedocs.io/zh-cn/1.0.0/tools/wallet.html)申请**星火个人数字凭证**，待审核通过后（一周会审核1到2次，也可用通过加入星火开发者社区，请求快速审核），即可获取`100`星火令。
+
+然后使用星火合约编辑器编译、部署合约到星火测试网上。其中部署过程中需要用到第一步用于星火令账户的私钥，可以在插件钱包中导出。星火合约编辑器使用说明请参考`/src/main/resources/contract/Remix合约IDE星火插件.pdf`
 
 ## 修改配置
 
