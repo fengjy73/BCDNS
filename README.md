@@ -114,7 +114,7 @@ tree .
 
 首先需要一个星火链账户拥有星火令才能正常往链上部署合约，测试网星火令可以通过[星火插件钱包](https://bif-doc.readthedocs.io/zh-cn/1.0.0/tools/wallet.html)申请**星火个人数字凭证**，待审核通过后（一周会审核1到2次，也可用通过加入星火开发者社区，请求快速审核），即可获取`100`星火令。
 
-然后使用星火合约编辑器编译、部署合约到星火测试网上。其中部署过程中需要用到第一步用于星火令账户的私钥，可以在插件钱包中导出。星火合约编辑器使用说明请参考`/src/main/resources/contract/Remix合约IDE星火插件.pdf`
+然后使用[星火合约编辑器](https://remix.learnblockchain.cn/#lang=zh&optimize=false&runs=200&evmVersion=null&version=soljson-v0.8.22+commit.4fc1097e.js)编译、部署合约到星火测试网上。其中部署过程中需要用到第一步用于星火令账户的私钥，可以在插件钱包中导出。星火合约编辑器使用说明请参考[教程](https://git.xinghuo.space/xinghuo-open-source/DLT/bcdns/-/blob/master/src/main/resources/contract/Remix%E5%90%88%E7%BA%A6IDE%E6%98%9F%E7%81%AB%E6%8F%92%E4%BB%B6.pdf?ref_type=heads)。
 
 ## 修改配置
 
@@ -187,6 +187,145 @@ mysql> source init.sql;
 ```
 
 可以通过`./bin/launch stop`关闭服务。
+
+## 示例
+
+服务启动之后即可调用http接口完成证书的申请和审核，可以使用curl、[postman](https://learning.postman.com/docs/introduction/overview/)或者使用`test/http-client`里面的辅助工具进行接口的调用。
+
+**第一步：服务初始化**
+
+服务成功启动之后，调用`/internal/vc/init`接口，完成服务初始化操作，生成根证书和API-Key。根证书由超级节点签发，为发证方进行可信背书；API-Key用于生成access token，辅助发证方进行权限校验以调用审核接口。
+
+```bash
+curl -X POST http://localhost:8114/internal/vc/init
+```
+
+返回结果如下，下面内容会用在申请access token。
+
+```json
+{
+    "apiKey":"xq92Jai...zzQ",
+    "apiSecret":"8e877a4cf...98ae944bd",
+    "issuerId":"did:bid:efMdkGyKfmizXNpXt3SEvJF8g57mDCpC"
+}
+```
+
+**第二步：生成access token**
+
+调用`/internal/vc/get/accessToken`接口获取access token。将第一步初始化时得到的返回值填入下面的curl中。
+
+```bash
+curl -H "Content-Type: application/json" -X POST -d '{"apiKey":"you_apiKey","apiSecret":"you_apiSecret","issuerId":"you_issuerId"}' http://localhost:8114/internal/vc/get/accessToken
+```
+
+返回类似下面的结果，`message`显示成功，`accessToken`将用于第四步审核发证，`expireIn`为access token有效期，单位为秒。
+
+```json
+{
+  "errorCode": 0,
+  "message": "success",
+  "data": {
+    "accessToken": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3N1ZXJJZCI6ImRpZDpiaWQ6ZWZLTDJ3Tm5xV2ZyOWJ5amRib3hQM2tIckFmQWR0bzkiLCJhcGlLZXkiOiJUYTJPR3VwcEFSRXV2ekxoIiwiaXNzIjoiQklGLUNIQUlOIiwiZXhwIjoxNzA0Mzg1Njk0fQ.OE0B22sW42eRXokxIMwOnp1NXxZCC7EKB-M-_x7nH5U",
+    "expireIn": 36000
+  }
+}
+```
+
+**第三步：申请PTC证书**
+
+调用`/external/vc/apply`接口，输入参数详情可查看`src/docs/http-api接口`word文档说明，`test/java/org/bcdns/credential/ApplyTest`的`testPTCApply`可以辅助生成PTC证书申请参数，直接`Run或者Debug`该函数即可。例如：
+
+```plain
+content:[0, 0, -127, 1, 0, 0, 0, 0, ..., 57, 101, 34, 125, 93, 125]
+credentialType:2
+publicKey:b0656617148...8b273f9c704
+sign:[-55, -50, 17, 21, ..., 88, -113, 53, 62, 12]
+```
+
+将上述得到的参数填入下面curl对应的地方。`content`使用上述返回content的byte数组即可，`credentialType`使用上述返回的credentialType即可，`publicKey`使用上面的Hex字符串，`sign`填入上面的byte数组。
+
+```plain
+curl -H "Content-Type: application/json" -X POST -d '{"content":you_content,"credentialType":you_credentialType,"publicKey":"you_publicKey","sign":you_sign}' http://localhost:8114/external/vc/apply
+```
+
+返回类似下面结果，`message`显示成功，`applyNo`则会在第四步使用到。
+
+```json
+{
+  "errorCode": 0,
+  "message": "success",
+  "data": {
+    "applyNo": "853a8bcaa14e86898a08be8d2f027586"
+  }
+}
+```
+
+**第四步：审核发证**
+
+调用`/internal/vc/audit`接口审核。审核参数需要`access token`和申请编号`applyNo`。
+
+```plain
+curl -H "Content-Type:application/json" -H "accessToken:you_accessToken" -X POST -d '{"applyNo":"you_applyNo","status":2,"reason":"you_reason"}' http://localhost:8114/internal/vc/audit
+```
+
+返回类似下面的结果，`message`显示成功，`txHash`为上传证书的交易hash。
+
+```json
+{
+    "errorCode": 0,
+    "message": "success",
+    "data": {
+        "txHash": "f1416e7d625d0d88ea65d00e334b8849eea30993418bfaf9d6035a685fdca40e"
+    }
+}
+```
+
+**第五步：查询凭证申请**
+
+调用`/external/vc/apply/status`接口查看凭证申请。参数为申请编号`applyNo`。
+
+```bash
+curl -H "Content-Type:application/json" -X POST -d '{"applyNo":"you_applyNo"}' http://localhost:8114/external/vc/apply/status
+```
+
+返回类似下面的结果，`message`显示成功，`status`显示申请审核通过。`credentialId`为PTC凭证的id。`user.type`为凭证用户的id的类型，`user.rawId`为凭证用户的id的序列化结果，可以采用[在线序列化工具](http://www.jsons.cn/base64/)查看原始字符串内容。
+
+```json
+{
+  "errorCode": 0,
+  "message": "success",
+  "data": {
+    "status": 2,
+    "credentialId": "did:bid:efrn7mjzNKrjzRGNyomWXRfTEf4HXBx1",
+    "userId": {
+      "type": "BID",
+      "rawId": "ZGlkOmJpZDplZjI2OEU3aTZhN21UMVRORW9IZEU0Q1VVVXFqQzVoOHI="
+    }
+  }
+}
+```
+
+**第六步：下载凭证**
+
+调用`/external/vc/download`接口下载证书。参数需要是第五步返回得到的`credentialId`。
+
+```plain
+curl -H "Content-Type: application/json" -X POST -d '{"credentialId":"you_credentialId"}' http://localhost:8114/external/vc/download
+```
+
+返回类似下面的结果，`message`显示成功，`credential`为证书的Base64格式。
+
+```json
+{
+    "errorCode": 0,
+    "message": "success",
+    "data": {
+        "credential": "AAAPAgAAAAABAAAAMQEAKQAAAGRpZDpiaWQ6ZWYyN3N0WkpBZXNlNnZXcDRyYmdoOHdRdkFRQTh3dnJLAgABAAAAAgMAOwAAAAAANQAAAAAAAQAAAAEBACgAAABkaWQ6YmlkOmVmS0wyd05ucVdmcjlieWpkYm94UDNrSHJBZkFkdG85BAAIAAAAHlOWZQAAAAAFAAgAAACehndnAAAAAAYA4QAAAAAA2wAAAAAAAwAAADEuMAEABAAAAHRlc3QCAAEAAAABAwA7AAAAAAA1AAAAAAABAAAAAQEAKAAAAGRpZDpiaWQ6ZWZoelNuUnJIQkRxWDhiZlVRVFVpaWdoQUU5c1M1TGIEAHoAAAB7InB1YmxpY0tleSI6W3sidHlwZSI6IkVEMjU1MTkiLCJwdWJsaWNLZXlIZXgiOiJiMDY1NjZhZDE1ZTk1ZTYyZTc2MWI4OGE0M2E3MGI2OTAyOTAzNTljYjRkY2E5MGE2YWNmMmM2MmRmYjc2MTVkYzM2NTIyIn1dfQcAiAAAAAAAggAAAAAAAwAAAFNNMwEAIAAAAGwYfQYqK3i2zMkNgMSQTVkpUS2eNu2B0RYl1kNMFKv3AgAHAAAARWQyNTUxOQMAQAAAAOh8f97pwWR2bkv1/t4Ff6x0YpAla/O/BQ/aLztF+BeIS4veZHBkEtEFTtuF2cToaQGS5dYc2FUCijm+sd4m1Q4="
+    }
+}
+```
+
+Relayer证书和区块链域名证书的申请和审核与PTC证书一样，只需重复执行步骤三、四、五、六即可。
 
 # 社区治理
 
