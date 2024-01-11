@@ -112,7 +112,7 @@ tree .
 
 要部署的合约一个有三个，PTCManager.sol、RelayerManager.sol和DomainNameManager.sol，合约代码在`src/main/resources/contract目录中`。合约部署是将以上3个合约部署到星火链测试网上。
 
-首先需要一个星火链账户拥有星火令才能正常往链上部署合约，测试网星火令可以通过[星火插件钱包](https://bif-doc.readthedocs.io/zh-cn/1.0.0/tools/wallet.html)申请**星火个人数字凭证**，待审核通过后（一周会审核1到2次，也可用通过加入星火开发者社区，请求快速审核），即可获取`100`星火令。
+首先需要一个星火链账户拥有星火令才能正常往链上部署合约，测试网星火令可以通过[星火插件钱包](https://bif-doc.readthedocs.io/zh-cn/1.0.0/tools/wallet.html)申请**星火个人数字凭证**（注意钱包连接的网络要切换为星火体验网，即测试网），待审核通过后（一周会审核1到2次，也可用通过加入[星火开发者社区](https://bif-doc.readthedocs.io/zh-cn/2.0.0/other/开发者社区.html)，请求快速审核），即可获取`100`星火令。
 
 然后使用[星火合约编辑器](https://remix.learnblockchain.cn/#lang=zh&optimize=false&runs=200&evmVersion=null&version=soljson-v0.8.22+commit.4fc1097e.js)编译、部署合约到星火测试网上。其中部署过程中需要用到第一步用于星火令账户的私钥，可以在插件钱包中导出。星火合约编辑器使用说明请参考[教程](https://git.xinghuo.space/xinghuo-open-source/DLT/bcdns/-/blob/master/src/main/resources/contract/Remix%E5%90%88%E7%BA%A6IDE%E6%98%9F%E7%81%AB%E6%8F%92%E4%BB%B6.pdf?ref_type=heads)。
 
