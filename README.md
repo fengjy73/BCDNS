@@ -60,7 +60,9 @@ docker run -itd --name redis-test -p 6379:6379 redis --requirepass 'YOUR_PWD' --
 
 ### 构建
 
-*在开始之前，请您确保安装了maven和JDK，这里推荐使用openjdk-1.8版本*
+**在开始之前，请您确保安装了maven和JDK，这里推荐使用[openjdk-1.8](https://adoptium.net/zh-CN/temurin/releases/?version=8)版本*
+
+**确保安装了AntChain Bridge Plugin SDK，详情请[见](https://github.com/AntChainOpenLabs/AntChainBridgePluginSDK?tab=readme-ov-file#%E6%9E%84%E5%BB%BA)*
 
 进入代码的根目录，运行mvn编译即可：
 
@@ -112,13 +114,36 @@ tree .
 
 要部署的合约一个有三个，PTCManager.sol、RelayerManager.sol和DomainNameManager.sol，合约代码在`src/main/resources/contract目录中`。合约部署是将以上3个合约部署到星火链测试网上。
 
-首先需要一个星火链账户拥有星火令才能正常往链上部署合约，测试网星火令可以通过[星火插件钱包](https://bif-doc.readthedocs.io/zh-cn/1.0.0/tools/wallet.html)申请**星火个人数字凭证**（注意钱包连接的网络要切换为星火体验网，即测试网），待审核通过后（一周会审核1到2次，也可用通过加入[星火开发者社区](https://bif-doc.readthedocs.io/zh-cn/2.0.0/other/开发者社区.html)，请求快速审核），即可获取`100`星火令。
+- 账户准备
 
-然后使用[星火合约编辑器](https://remix.learnblockchain.cn/#lang=zh&optimize=false&runs=200&evmVersion=null&version=soljson-v0.8.22+commit.4fc1097e.js)编译、部署合约到星火测试网上。其中部署过程中需要用到第一步用于星火令账户的私钥，可以在插件钱包中导出。星火合约编辑器使用说明请参考[教程](https://git.xinghuo.space/xinghuo-open-source/DLT/bcdns/-/blob/master/src/main/resources/contract/Remix%E5%90%88%E7%BA%A6IDE%E6%98%9F%E7%81%AB%E6%8F%92%E4%BB%B6.pdf?ref_type=heads)。
+  开始之前请先了解并安装[星火插件钱包](https://bif-doc.readthedocs.io/zh-cn/1.0.0/tools/wallet.html)。
+
+  你需要一个星火链账户拥有星火令才能正常往链上部署合约，这里提供两种方式获取账户私钥。
+
+  - 我们提供了一个公共的星火链测试网私钥，预先充值了一定的星火令，开发者可以使用该私钥，但请不要用于任何生产场景。
+
+    将下面的私钥添加到星火插件钱包即可。
+
+    ```
+    "address" : "did:bid:efYqASNNKhotQLdJH9N83jniXJyinmDX"
+    "private_key" : "priSPKkeE5bJuRdsbBeYRMHR6vF6M6PJV97jbwAHomVQodn3x3"
+    ```
+
+  - 测试网星火令可以通过[星火插件钱包](https://bif-doc.readthedocs.io/zh-cn/1.0.0/tools/wallet.html)申请**星火个人数字凭证**（注意在钱包右上角，将连接的网络切换为星火体验网，即测试网），这里需要人工审核，待审核通过后（一周会审核1到2次，也可用通过加入[星火开发者社区](https://bif-doc.readthedocs.io/zh-cn/2.0.0/other/开发者社区.html)，请求快速审核），即可获取`100`星火令。
+
+- 合约部署
+
+  然后使用[星火合约编辑器](https://remix.learnblockchain.cn/#lang=zh&optimize=false&runs=200&evmVersion=null&version=soljson-v0.8.22+commit.4fc1097e.js)编译、部署合约到星火测试网上。其中部署过程中需要用到第一步用于星火令账户的私钥，可以在插件钱包中导出。星火合约编辑器使用说明请参考[教程](https://git.xinghuo.space/xinghuo-open-source/DLT/bcdns/-/blob/master/src/main/resources/contract/Remix%E5%90%88%E7%BA%A6IDE%E6%98%9F%E7%81%AB%E6%8F%92%E4%BB%B6.pdf?ref_type=heads)。
 
 ## 修改配置
 
-配置文件在`conf`目录下，开发者使用`application-test.properties`进行配置的修改。需要修改MySQL、Redis的用户名和密码，源码test目录下的辅助工具`ConfigToolsTest`可以帮助加密密码，并生成解密公钥；同时修改三个合约地址，以及超级节点和发证方的私钥，对于体验模式，没有对超级节点进行校验，可随意填写一个账户私钥，发证方的私钥则需要填写部署合约时用到的账户地址的私钥。
+配置文件在`conf`目录下，开发者使用`application-test.properties`进行配置的修改。
+
+- 需要修改MySQL、Redis的用户名和密码，源码test目录下的辅助工具`ConfigToolsTest`可以帮助加密密码，并生成解密公钥；
+
+- 同时修改三个合约地址，使用上一节部署的三本合约；
+- 修改超级节点私钥，对于体验模式，没有对超级节点进行校验，可随意填写一个账户私钥；
+- 修改发证方的发证方的私钥，需要填写部署合约时用到的账户地址的私钥；
 
 `ConfigToolsTest`使用返回结果示例：
 
@@ -159,8 +184,8 @@ ptc.contract.address=xxx //完成合约部署后得到的PTC合约地址
 relay.contract.address=xxx //完成合约部署后得到的relayer合约地址
 domain-name.contract.address=xxx //完成合约部署后得到的r域名合约地址
 sdk.url=http://test.bifcore.bitfactory.cn 
-object-identity.supernode.bid-private-key=xxx //星火链测试网超级节点私钥，体验模型可以随意填写一个账户私钥
-object-identity.issuer.bid-private-key=xxx //部署合约时使用的账号私钥
+object-identity.supernode.bid-private-key=xxx //星火链测试网超级节点私钥，体验模式可以随意填写一个账户私钥
+object-identity.issuer.bid-private-key=xxx //部署合约时使用的账号私钥，如果使用了我们提供的私钥，拷贝过来即可，如果自行生成的私钥，需要从星火插件钱包导出
 
 run.type=0 //BCDNS服务运行模式，0为开发者体验模式，1为实际生产模式；生产模式和体验模式区别在于对于凭证申请的权限校验，实际生产模式，PTC的申请规定只能容许骨干节点有资格，Relayer的申请规定只能容许超级节点有资格，而体验模式为了简化流程，省去权限校验部分。
 ```
