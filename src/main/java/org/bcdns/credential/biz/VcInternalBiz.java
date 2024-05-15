@@ -1,6 +1,11 @@
 package org.bcdns.credential.biz;
 
 
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+
 import cn.ac.caict.bid.model.BIDDocumentOperation;
 import cn.ac.caict.bid.model.BIDpublicKeyOperation;
 import cn.bif.api.BIFSDK;
@@ -10,8 +15,8 @@ import cn.bif.model.request.BIFContractInvokeRequest;
 import cn.bif.model.response.BIFContractInvokeResponse;
 import cn.bif.module.encryption.key.PrivateKeyManager;
 import cn.bif.module.encryption.model.KeyType;
-import cn.hutool.core.codec.Base64;
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.util.HexUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.digest.SM3;
 import com.alipay.antchain.bridge.commons.bcdns.*;
@@ -44,11 +49,6 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
 
 
 @Component
@@ -166,19 +166,20 @@ public class VcInternalBiz {
     }
 
     private String getPTCInput(AbstractCrossChainCertificate certificate) {
-        return StrUtil.format("{\"function\":\"addCertificate(string,bytes)\",\"args\":\"'{}','{}'\"}", certificate.getId(), Base64.encode(certificate.encode()));
+        return StrUtil.format("{\"function\":\"addCertificate(string,bytes)\",\"args\":\"'{}','{}'\"}", certificate.getId(), "0x" + HexUtil.encodeHexStr(certificate.encode()));
     }
 
     private String getRelayInput(AbstractCrossChainCertificate certificate) {
         String relayAddress = BIDHelper.encAddress(BIDHelper.getKeyTypeFromPublicKey(CrossChainCertificateUtil.getPublicKeyFromCrossChainCertificate(certificate)),
                 CrossChainCertificateUtil.getRawPublicKeyFromCrossChainCertificate(certificate));
-        return StrUtil.format("{\"function\":\"addCertificate(string,bytes,address)\",\"args\":\"'{}','{}',{}\"}", certificate.getId(), Base64.encode(certificate.encode()), relayAddress);
+        return StrUtil.format("{\"function\":\"addCertificate(string,bytes,address)\",\"args\":\"'{}','{}',{}\"}", certificate.getId(), "0x" + HexUtil.encodeHexStr(certificate.encode()), relayAddress);
     }
 
     private String getDomainNameInput(AbstractCrossChainCertificate certificate) {
         DomainNameCredentialSubject domainNameCredentialSubject = DomainNameCredentialSubject.decode(certificate.getCredentialSubject());
         CrossChainDomain crossChainDomain = domainNameCredentialSubject.getDomainName();
-        return StrUtil.format("{\"function\":\"addCertificate(string,bytes,bytes)\",\"args\":\"'{}','{}','{}'\"}", certificate.getId(), crossChainDomain.getDomain(), Base64.encode(certificate.encode()));
+        return StrUtil.format("{\"function\":\"addCertificate(string,string,bytes)\",\"args\":\"'{}','{}','{}'\"}",
+                certificate.getId(), crossChainDomain.getDomain(), "0x" + HexUtil.encodeHexStr(certificate.encode()));
     }
 
     private String auditTxSubmit(AbstractCrossChainCertificate certificate, String issuerPrivateKey, String issuerId, VcRecordDomain domain) {
