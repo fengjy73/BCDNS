@@ -20,6 +20,8 @@ import com.alipay.antchain.bridge.commons.bcdns.utils.CrossChainCertificateUtil;
 import com.alipay.antchain.bridge.commons.core.base.CrossChainDomain;
 import com.alipay.antchain.bridge.commons.core.base.ObjectIdentity;
 import com.alipay.antchain.bridge.commons.core.base.ObjectIdentityType;
+import com.alipay.antchain.bridge.commons.utils.crypto.HashAlgoEnum;
+import com.alipay.antchain.bridge.commons.utils.crypto.SignAlgoEnum;
 import org.bcdns.credential.common.constant.Constants;
 import org.bcdns.credential.common.utils.AppUtils;
 import org.bcdns.credential.common.utils.JwtUtil;
@@ -118,16 +120,18 @@ public class VcInternalBiz {
 
             byte[] msg = certificate.getEncodedToSign();
             byte[] sign = superNodePrivateKeyManager.sign(msg);
-            String signAlg = "";
+            SignAlgoEnum signAlg;
             KeyType keyType = superNodePrivateKeyManager.getKeyType();
             if (keyType.equals(KeyType.SM2)) {
-                signAlg = "SM2";
+                signAlg = SignAlgoEnum.SM3_WITH_SM2;
             } else if (keyType.equals(KeyType.ED25519)){
-                signAlg = "Ed25519";
+                signAlg = SignAlgoEnum.ED25519;
+            } else {
+                throw new APIException(ExceptionEnum.KEYTYPE_ERROR);
             }
             certificate.setProof(
                     new AbstractCrossChainCertificate.IssueProof(
-                            "SM3",
+                            HashAlgoEnum.SM3,
                             SM3.create().digest(certificate.getEncodedToSign()),
                             signAlg,
                             sign
@@ -247,16 +251,18 @@ public class VcInternalBiz {
         PrivateKeyManager privateKeyManager = new PrivateKeyManager(issuerPrivateKey);
         byte[] msg = certificate.getEncodedToSign();
         byte[] sign = privateKeyManager.sign(msg);
-        String signAlg = "";
+        SignAlgoEnum signAlg;
         KeyType keyType = privateKeyManager.getKeyType();
         if (keyType.equals(KeyType.SM2)) {
-            signAlg = "SM2";
+            signAlg = SignAlgoEnum.SM3_WITH_SM2;
         } else if (keyType.equals(KeyType.ED25519)){
-            signAlg = "Ed25519";
+            signAlg = SignAlgoEnum.ED25519;
+        } else {
+            throw new APIException(ExceptionEnum.KEYTYPE_ERROR);
         }
         certificate.setProof(
                 new AbstractCrossChainCertificate.IssueProof(
-                        "SM3",
+                        HashAlgoEnum.SM3,
                         SM3.create().digest(certificate.getEncodedToSign()),
                         signAlg,
                         sign
@@ -285,16 +291,18 @@ public class VcInternalBiz {
         PrivateKeyManager privateKeyManager = new PrivateKeyManager(issuerPrivateKey);
         byte[] msg = certificate.getEncodedToSign();
         byte[] sign = privateKeyManager.sign(msg);
-        String signAlg = "";
+        SignAlgoEnum signAlg;
         KeyType keyType = privateKeyManager.getKeyType();
         if (keyType.equals(KeyType.SM2)) {
-            signAlg = "SM2";
+            signAlg = SignAlgoEnum.SM3_WITH_SM2;
         } else if (keyType.equals(KeyType.ED25519)){
-            signAlg = "Ed25519";
+            signAlg = SignAlgoEnum.ED25519;
+        } else {
+            throw new APIException(ExceptionEnum.KEYTYPE_ERROR);
         }
         certificate.setProof(
                 new AbstractCrossChainCertificate.IssueProof(
-                        "SM3",
+                        HashAlgoEnum.SM3,
                         SM3.create().digest(certificate.getEncodedToSign()),
                         signAlg,
                         sign
@@ -325,16 +333,18 @@ public class VcInternalBiz {
         PrivateKeyManager privateKeyManager = new PrivateKeyManager(issuerPrivateKey);
         byte[] msg = certificate.getEncodedToSign();
         byte[] sign = privateKeyManager.sign(msg);
-        String signAlg = "";
+        SignAlgoEnum signAlg;
         KeyType keyType = privateKeyManager.getKeyType();
         if (keyType.equals(KeyType.SM2)) {
-            signAlg = "SM2";
+            signAlg = SignAlgoEnum.SM3_WITH_SM2;
         } else if (keyType.equals(KeyType.ED25519)){
-            signAlg = "Ed25519";
+            signAlg = SignAlgoEnum.ED25519;
+        } else {
+            throw new APIException(ExceptionEnum.KEYTYPE_ERROR);
         }
         certificate.setProof(
                 new AbstractCrossChainCertificate.IssueProof(
-                        "SM3",
+                        HashAlgoEnum.SM3,
                         SM3.create().digest(certificate.getEncodedToSign()),
                         signAlg,
                         sign

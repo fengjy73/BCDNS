@@ -29,6 +29,17 @@ public enum ExceptionEnum {
 
     CREDENTIAL_IS_DOWNLOAD(100113, "凭证已下载"),
 
+    PTCTRUSTROOT_SIGN_VERIFY_ERROR(100114, "ptctrustroot sign verify error"),
+
+    REGISTER_PTCTRUSTROOT_ERROR(100115, "register ptctrustroot error"),
+
+    REGISTER_TPBTA_ERROR(100116, "register ptba error"),
+
+    TPBTA_SIGN_VERIFY_ERROR(100117, "tpba verify error"),
+
+    TPBTA_TYPE_ERROR(100118, "tpba type error"),
+
+    KEYTYPE_ERROR(100119, "keytype error"),
     ;
     private Integer errorCode;
     private String message;
