@@ -12,6 +12,8 @@ import static org.bcdns.credential.common.constant.MessageConstant.*;
 @Data
 public class VcTpBtaReqDto {
 
+    private String domainName;
+
     private byte[] content;
 
     @NotNull(message = DESC_VALID_NULL)

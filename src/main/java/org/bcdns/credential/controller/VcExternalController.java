@@ -65,8 +65,8 @@ public class VcExternalController {
     }
 
     @PostMapping(value = "/add/tpbta")
-    public DataResp<VcTpBtaRespDto> addTpBta(@Valid @RequestBody VcTpBtaReqDto reqDto) {
+    public DataResp<VcTpBtaRespDto> addThirdPartyBlockchainTrustAnchor(@Valid @RequestBody VcTpBtaReqDto reqDto) {
         log.info("request url:{}******params:{}", "/vc/add/tpbta", JSONObject.toJSON(reqDto));
-        return vcExternalBiz.vcAddTpBta(reqDto);
+        return vcExternalBiz.vcAddThirdPartyBlockchainTrustAnchor(reqDto);
     }
 }
