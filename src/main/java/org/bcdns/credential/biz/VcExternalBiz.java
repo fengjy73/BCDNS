@@ -2,6 +2,7 @@ package org.bcdns.credential.biz;
 
 
 import cn.bif.api.BIFSDK;
+import cn.bif.common.JsonUtils;
 import cn.bif.model.request.BIFContractCallRequest;
 import cn.bif.model.request.BIFContractInvokeRequest;
 import cn.bif.model.response.BIFContractCallResponse;
@@ -44,6 +45,7 @@ import org.springframework.stereotype.Component;
 
 import java.security.PublicKey;
 import java.util.Map;
+import java.util.Objects;
 
 
 @Component
@@ -55,7 +57,10 @@ public class VcExternalBiz {
     @Value("${ptc.contract.address}")
     private String ptcContractAddress;
 
-    @Value("${ptcTrustRoot.contract.address}")
+    @Value("${relay.contract.address}")
+    private String relayContractAddress;
+
+    @Value("${ptc-trust-root.contract.address}")
     private String ptcTrustRootContractAddress;
 
     @Value("${tpbta.contract.address}}")
@@ -80,6 +85,27 @@ public class VcExternalBiz {
 
     @Value("${sdk.url}")
     private String sdkUrl;
+
+    @Value("${owner.address}}")
+    private String ownerAddress;
+
+    @Value("$owner.privateKey")
+    private String ownerPrivateKey;
+
+    private static final String GET_CERT_BY_ID
+            = "{\"function\":\"getCertById(string)\",\"args\":\"'{}'\"}";
+
+    private static final String GET_PTCTRUSTROOT_BY_ID
+            = "{\"function\":\"getPTCTrustRootById(bytes32)\",\"args\":\"'{}'\"}";
+
+    private static final String ADD_PTCTRUSTROOT_BY_PTCOID_TEMPLATE
+            = "{\"function\":\"addPTCTR(bytes32,bytes)\",\"args\":\"'{}','{}'\"}";
+
+    private static final String UPGRADE_PTCTRUSTROOT_BY_PTCOID_TEMPLATE
+            = "{\"function\":\"upgradePTCTR(bytes32,bytes)\",\"args\":\"'{}','{}'\"}";
+
+    private static final String BINDING_DOMAIN_NAME_WITH_TPBTA_TEMPLATE
+            = "{\"function\":\"bindingDomainNameWithTPBTA(string,bytes)\",\"args\":\"'{}','{}'\"}";
 
     private void isBackbone(String publicKey) {
         PublicKeyManager publicKeyManager = new PublicKeyManager(publicKey);
@@ -324,11 +350,15 @@ public class VcExternalBiz {
         byte[] content = reqDto.getContent();
         PTCTrustRoot ptcTrustRootReq = PTCTrustRoot.decode(content);
         // get certificate from contract
-        String id = ptcTrustRootReq.getPtcCrossChainCert().getId();
+        String vcId = ptcTrustRootReq.getPtcCrossChainCert().getId();
         BIFSDK bifsdk = BIFSDK.getInstance(sdkUrl); // create a chain client
-        String input = StrUtil.format("{\"function\":\"getCertById(string)\",\"args\":\"'{}'\"}", id);
+        // call PTCManager contract to get Blockchain DomainName Service issued certificate
         BIFContractCallRequest bifContractCallRequest = new BIFContractCallRequest();
-        bifContractCallRequest.setInput(input);
+        bifContractCallRequest.setInput(
+                StrUtil.format(
+                        GET_CERT_BY_ID, vcId
+                )
+        );
         bifContractCallRequest.setContractAddress(ptcContractAddress);
         BIFContractService bifContractService = bifsdk.getBIFContractService();
         BIFContractCallResponse callResp = bifContractService.contractQuery(bifContractCallRequest);
@@ -336,29 +366,68 @@ public class VcExternalBiz {
         try {
             if (ExceptionEnum.SUCCESS.getErrorCode().equals(callResp.getErrorCode())) {
                 if (JSONObject.parseObject(JSONObject.toJSONString(callResp.getResult().getQueryRets().get(0))).getJSONObject("result") != null) {
-                    JSONObject result = JSONObject.parseObject(JSONObject.toJSONString(callResp.getResult().getQueryRets().get(0))).getJSONObject("result");
-                    String data = result.getString("data"); // get (bytes)certificate from bif's contract
-                    // TODO: how to decode result from contract
+                    // JSONObject result = JSONObject.parseObject(JSONObject.toJSONString(callResp.getResult().getQueryRets().get(0))).getJSONObject("result");
+                    // String data = result.getString("data"); // get (bytes)certificate from bif's contract
+                    // decode result from contract to get (byte[])certificate
                     String resp = decodeResultFromResponse(callResp);
-                    AbstractCrossChainCertificate certFromCont = CrossChainCertificateFactory.createCrossChainCertificate(HexUtil.decodeHex(resp));
+                    AbstractCrossChainCertificate certFromCont = CrossChainCertificateFactory.createCrossChainCertificate(HexUtil.decodeHex(resp)); // decodeResultFromResponse(callResp) maybe has remove '0x'
                     PublicKey publicKey = CrossChainCertificateUtil.getPublicKeyFromCrossChainCertificate(certFromCont); // get cert from bif's contract
-                    // TODO: sign verify
+                    // verify signature
                     if (ptcTrustRootReq.getSigAlgo().getSigner().verify(
                             publicKey,
                             ptcTrustRootReq.getEncodedToSign(), //data
                             ptcTrustRootReq.getSig()
                     )) {
-                        // TODO: upload ptcTrustRoot to PTCTrustRootManager.sol
+                        // if ptcTrustRoot has been registered
+                        bifContractCallRequest.setContractAddress(ptcTrustRootContractAddress);
+                        bifContractCallRequest.setInput(
+                                StrUtil.format(
+                                        GET_PTCTRUSTROOT_BY_ID, reqDto.getPtcOid()
+                                )
+                        );
+                        // BIF test net has some problems about gas calculation
+                        // So we just set gas manually here.
+                        // would delete it in the future.
+                        bifContractCallRequest.setGasPrice(1L);
+
+                        callResp = bifContractService.contractQuery(bifContractCallRequest);
+                        if (0 != callResp.getErrorCode()) {
+                            throw new APIException(
+                                    ExceptionEnum.REGISTER_PTCTRUSTROOT_ERROR,
+                                    StrUtil.format(
+                                            "failed to query PTCTTrustRoot by ptcOid to BIF chain ( err_code: {}, err_msg: {} )",
+                                            callResp.getErrorCode(), callResp.getErrorDesc()
+                                    )
+                            );
+                        }
+                        // upload ptcTrustRoot to PTCTrustRootManager contract
                         BIFContractInvokeRequest bifContractInvokeRequest = new BIFContractInvokeRequest();
-                        String senderAddress = "did:bid:efYqASNNKhotQLdJH9N83jniXJyinmDX";
-                        String senderPrivateKey = "priSPKkeE5bJuRdsbBeYRMHR6vF6M6PJV97jbwAHomVQodn3x3";
-                        String addptcInput = StrUtil.format("{\"function\":\"addPTCTR(string,bytes)\",\"args\":\"'{}','{}'\"}", id, "0x" + HexUtil.encodeHexStr(content));
-                        bifContractInvokeRequest.setSenderAddress(senderAddress);
-                        bifContractInvokeRequest.setPrivateKey(senderPrivateKey);
-                        bifContractInvokeRequest.setInput(addptcInput);
+                        // String senderAddress = "did:bid:efYqASNNKhotQLdJH9N83jniXJyinmDX";
+                        // String senderPrivateKey = "priSPKkeE5bJuRdsbBeYRMHR6vF6M6PJV97jbwAHomVQodn3x3";
+                        bifContractInvokeRequest.setSenderAddress(ownerAddress);
+                        bifContractInvokeRequest.setPrivateKey(ownerPrivateKey);
+                        // not registered: addPTCTR
+                        bifContractInvokeRequest.setInput(
+                                StrUtil.format(
+                                        ADD_PTCTRUSTROOT_BY_PTCOID_TEMPLATE,
+                                        reqDto.getPtcOid(), "0x" + HexUtil.encodeHexStr(content)
+                                )
+                        );
+                        if (JSONObject.parseObject(JSONObject.toJSONString(callResp.getResult().getQueryRets().get(0))).getJSONObject("result") != null) {
+                            resp = decodeResultFromResponse(callResp);
+                            // has been registered: upgradePTCTR
+                            if (!Objects.equals(resp, "0x00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000")) {
+                                bifContractInvokeRequest.setInput(
+                                        StrUtil.format(
+                                                UPGRADE_PTCTRUSTROOT_BY_PTCOID_TEMPLATE,
+                                                reqDto.getPtcOid(), "0x" + HexUtil.encodeHexStr(content)
+                                        )
+                                );
+                            }
+                        }
                         bifContractInvokeRequest.setContractAddress(ptcTrustRootContractAddress);
                         BIFContractInvokeResponse response = bifContractService.contractInvoke(bifContractInvokeRequest);
-                        // TODO: deal response
+                        // deal add PTCTrustRoot's response
                         if (0 != response.getErrorCode()) {
                             throw new APIException(
                                     ExceptionEnum.REGISTER_PTCTRUSTROOT_ERROR,
@@ -373,18 +442,18 @@ public class VcExternalBiz {
                         vcPTCTrustRootRespDto.setTxHash(response.getResult().getHash());
                         dataResp.setData(vcPTCTrustRootRespDto);
                     } else {
+                        logger.error("addPTCTrustRoot verify signature failed");
                         throw new APIException(ExceptionEnum.PTCTRUSTROOT_SIGN_VERIFY_ERROR);
                     }
                 }
             }
         } catch (APIException e) {
-            logger.error("addPTCTrustRoot verify signature failed", e);
             dataResp.buildAPIExceptionField(e);
         }
         return dataResp;
     }
 
-    public DataResp<VcTpBtaRespDto> vcAddTpBta(VcTpBtaReqDto reqDto) {
+    public DataResp<VcTpBtaRespDto> vcAddThirdPartyBlockchainTrustAnchor(VcTpBtaReqDto reqDto) {
         DataResp<VcTpBtaRespDto> dataResp = new DataResp<>();
         byte[] content = reqDto.getContent();
         // decode byte to TPBTA
@@ -406,24 +475,31 @@ public class VcExternalBiz {
         AbstractCrossChainCertificate certRecover = CrossChainCertificateFactory.createCrossChainCertificate(vcRecordDomain.getContent());
         // verify if the sender's identity is relayer
         try {
-            if(CrossChainCertificateTypeEnum.getTypeByCredentialSubject(certRecover.getCredentialSubjectInstance())
+            if (CrossChainCertificateTypeEnum.getTypeByCredentialSubject(certRecover.getCredentialSubjectInstance())
                     != CrossChainCertificateTypeEnum.RELAYER_CERTIFICATE) {
                 throw new APIException(ExceptionEnum.TPBTA_TYPE_ERROR);
-            };
+            }
+            ;
             // verify if the sig is valid
             byte[] sign = reqDto.getSign();
-            if(!publicKeyManager.verify(content, reqDto.getSign())) {
+            PublicKeyManager pubKeyInBCDNS = new PublicKeyManager(vcRecordDomain.getPublicKey());
+            if (!pubKeyInBCDNS.verify(content, reqDto.getSign())) {
                 throw new APIException(ExceptionEnum.TPBTA_SIGN_VERIFY_ERROR);
             }
             // upload to bif chain's ThirdPartyBlockchainTrustAnchor contract
             BIFContractInvokeRequest bifContractInvokeRequest = new BIFContractInvokeRequest();
-            String senderAddress = "did:bid:efYqASNNKhotQLdJH9N83jniXJyinmDX";
-            String senderPrivateKey = "priSPKkeE5bJuRdsbBeYRMHR6vF6M6PJV97jbwAHomVQodn3x3";
-            String addTpBtaInput = StrUtil.format("{\"function\":\"addTPBTA(string,bytes)\",\"args\":\"'{}','{}'\"}", publicKey, "0x" + HexUtil.encodeHexStr(content));
-            bifContractInvokeRequest.setSenderAddress(senderAddress);
-            bifContractInvokeRequest.setPrivateKey(senderPrivateKey);
-            bifContractInvokeRequest.setContractAddress(tpbtaContractAddress);
-            bifContractInvokeRequest.setInput(addTpBtaInput);
+            // String senderAddress = "did:bid:efYqASNNKhotQLdJH9N83jniXJyinmDX";
+            // String senderPrivateKey = "priSPKkeE5bJuRdsbBeYRMHR6vF6M6PJV97jbwAHomVQodn3x3";
+            // String addTpBtaInput = StrUtil.format("{\"function\":\"addTPBTA(string,bytes)\",\"args\":\"'{}','{}'\"}", publicKey, "0x" + HexUtil.encodeHexStr(content));
+            bifContractInvokeRequest.setSenderAddress(ownerAddress);
+            bifContractInvokeRequest.setPrivateKey(ownerPrivateKey);
+            bifContractInvokeRequest.setContractAddress(relayContractAddress);
+            bifContractInvokeRequest.setInput(
+                    StrUtil.format(
+                            BINDING_DOMAIN_NAME_WITH_TPBTA_TEMPLATE,
+                            reqDto.getDomainName(), content
+                    )
+            );
             BIFContractService bifContractService = bifsdk.getBIFContractService();
             BIFContractInvokeResponse response = bifContractService.contractInvoke(bifContractInvokeRequest);
             if (0 != response.getErrorCode()) {
@@ -439,7 +515,7 @@ public class VcExternalBiz {
             vcTpBtaRespDto.setStatus(true);
             vcTpBtaRespDto.setTxHash(response.getResult().getHash());
             dataResp.setData(vcTpBtaRespDto);
-        }catch (APIException e) {
+        } catch (APIException e) {
             logger.error("vcAddTpBta failed", e);
             dataResp.buildAPIExceptionField(e);
         }

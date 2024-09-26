@@ -9,13 +9,13 @@ contract PTCTrustRootManager is Ownable {
         bool status;
     }
 
-    mapping(string => PTCTrustRootInfo) private idToPTCTrustRoot; // <ObjectIdentity, PTCTrustRoot>
+    mapping(bytes32 => PTCTrustRootInfo) private idToPTCTrustRoot; // <ObjectIdentity, PTCTrustRoot>
 
-    event addPTCTrustRoot(string ptcId, bytes ptcTrustRoot);
-    event revokePTCTrustRoot(string ptcId);
-    event upgradePTCTrustRoot(string ptcId, bytes newPTCTrustRoot);
+    event addPTCTrustRoot(bytes32 ptcId, bytes ptcTrustRoot);
+    event revokePTCTrustRoot(bytes32 ptcId);
+    event upgradePTCTrustRoot(bytes32 ptcId, bytes newPTCTrustRoot);
 
-    function addPTCTR(string memory ptcId, bytes memory ptcTrustRoot) public onlyOwner {
+    function addPTCTR(bytes32 ptcId, bytes memory ptcTrustRoot) public onlyOwner {
         require(
             idToPTCTrustRoot[ptcId].ptcTrustRoot.length == 0,
             "ptcTrustRoot has been registered"
@@ -29,7 +29,7 @@ contract PTCTrustRootManager is Ownable {
         emit addPTCTrustRoot(ptcId, ptcTrustRoot);
     }
 
-    function revokePTCTR(string memory ptcId) public onlyOwner {
+    function revokePTCTR(bytes32 ptcId) public onlyOwner {
         require(
             idToPTCTrustRoot[ptcId].status,
             "PTCTrustRoot has been revoked"
@@ -39,7 +39,7 @@ contract PTCTrustRootManager is Ownable {
         emit revokePTCTrustRoot(ptcId);
     }
 
-    function upgradePTCTR(string memory ptcId, bytes memory newPTCTrustRoot) public onlyOwner {
+    function upgradePTCTR(bytes32 ptcId, bytes memory newPTCTrustRoot) public onlyOwner {
         require(
             idToPTCTrustRoot[ptcId].ptcTrustRoot.length != 0,
             "ptcTrustRoot has not been registered"
@@ -54,11 +54,11 @@ contract PTCTrustRootManager is Ownable {
         emit upgradePTCTrustRoot(ptcId, newPTCTrustRoot);
     }
 
-    function getPTCTrustRootById(string memory ptcId) public view returns (bytes memory) {
+    function getPTCTrustRootById(bytes32 ptcId) public view returns (bytes memory) {
         return idToPTCTrustRoot[ptcId].ptcTrustRoot;
     }
 
-    function getPTCTrustRootStatusById(string memory ptcId) public view returns (bool) {
+    function getPTCTrustRootStatusById(bytes32 ptcId) public view returns (bool) {
         return idToPTCTrustRoot[ptcId].status;
     }
 }
