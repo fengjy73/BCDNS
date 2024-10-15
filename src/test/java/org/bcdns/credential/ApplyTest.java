@@ -40,7 +40,7 @@ public class ApplyTest {
                 new PTCCredentialSubject(
                         "1.0",
                         "test",
-                        PTCTypeEnum.BLOCKCHAIN,
+                        PTCTypeEnum.COMMITTEE,
                         new ObjectIdentity(ObjectIdentityType.BID, keyPair.getEncAddress().getBytes()),
                         JsonUtils.toJSONString(bidDocumentOperation).getBytes()
                 )

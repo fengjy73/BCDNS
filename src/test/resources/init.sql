@@ -1,3 +1,6 @@
+# CREATE DATABASE credential;
+USE credential;
+
 CREATE TABLE `vc_record` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `apply_no` varchar(50) COLLATE utf8mb4_bin DEFAULT NULL COMMENT '申请编号',
@@ -7,6 +10,7 @@ CREATE TABLE `vc_record` (
   `vc_id` varchar(100) COLLATE utf8mb4_bin DEFAULT NULL COMMENT '凭证id',
   `vc_data` LONGBLOB DEFAULT NULL COMMENT '证书数据',
   `public_key` varchar(255) COLLATE utf8mb4_bin DEFAULT NULL COMMENT 'bid公钥',
+  `owner_public_key` varchar(255) COLLATE utf8mb4_bin DEFAULT NULL COMMENT '证书持有者公钥',
   `user_id` LONGBLOB DEFAULT NULL COMMENT '用户bid',
   `create_time` BigInt DEFAULT NULL COMMENT '创建时间',
   `update_time` BigInt DEFAULT NULL COMMENT '更新时间',

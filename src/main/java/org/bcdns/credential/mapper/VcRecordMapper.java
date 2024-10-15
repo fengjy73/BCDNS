@@ -14,6 +14,7 @@ public interface VcRecordMapper {
     public VcRecordDomain getVcRecord(String applyNo);
     public VcRecordDomain getVcRecord4VcId(String vcId);
     public VcRecordDomain getVcRecord4UserId(byte[] userId);
+    public VcRecordDomain getVcRecord4OwnerPubKey(String ownerPublicKey);
     public int updateAuditPassStatus(VcRecordDomain vcRecordDomain);
     public List<VcRecordListDomain> queryList(VcApplyListReqDto reqDto);
     public int queryListCount(VcApplyListReqDto reqDto);

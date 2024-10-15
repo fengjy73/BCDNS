@@ -4,6 +4,5 @@ import lombok.Data;
 
 @Data
 public class VcPTCTrustRootReqDto {
-    private byte[] ptcOid;
-    private byte[] content;
+    private byte[] ptcTrustRoot;
 }

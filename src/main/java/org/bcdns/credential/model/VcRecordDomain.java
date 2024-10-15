@@ -14,6 +14,7 @@ public class VcRecordDomain {
     private String vcId;
     private byte[] vcData;
     private String publicKey;
+    private String ownerPublicKey;
     private byte[] userId;
     private long createTime;
     private long updateTime;

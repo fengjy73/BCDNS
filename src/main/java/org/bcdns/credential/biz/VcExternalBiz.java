@@ -9,19 +9,26 @@ import cn.bif.model.response.BIFContractCallResponse;
 import cn.bif.model.response.BIFContractInvokeResponse;
 import cn.bif.module.contract.BIFContractService;
 import cn.bif.module.encryption.key.PublicKeyManager;
+import cn.hutool.core.codec.Base64;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.HexUtil;
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.alipay.antchain.bridge.commons.bcdns.*;
 import com.alipay.antchain.bridge.commons.bcdns.utils.CrossChainCertificateUtil;
+import com.alipay.antchain.bridge.commons.core.base.CrossChainDomain;
 import com.alipay.antchain.bridge.commons.core.base.ObjectIdentity;
 import com.alipay.antchain.bridge.commons.core.base.ObjectIdentityType;
+import com.alipay.antchain.bridge.commons.core.base.X509PubkeyInfoObjectIdentity;
 import com.alipay.antchain.bridge.commons.core.ptc.PTCTrustRoot;
 import com.alipay.antchain.bridge.commons.core.ptc.ThirdPartyBlockchainTrustAnchor;
 import com.alipay.antchain.bridge.commons.core.ptc.ThirdPartyBlockchainTrustAnchorV1;
 import com.alipay.antchain.bridge.commons.exception.AntChainBridgeCommonsException;
 import com.alipay.antchain.bridge.commons.exception.CommonsErrorCodeEnum;
+import com.alipay.antchain.bridge.commons.utils.crypto.HashAlgoEnum;
+import com.alipay.antchain.bridge.commons.utils.crypto.SignAlgoEnum;
+import com.fasterxml.jackson.databind.ser.Serializers;
 import org.bcdns.credential.common.constant.Constants;
 import org.bcdns.credential.common.utils.IdGenerator;
 import org.bcdns.credential.common.utils.Tools;
@@ -86,17 +93,19 @@ public class VcExternalBiz {
     @Value("${sdk.url}")
     private String sdkUrl;
 
+    // String senderAddress = "did:bid:efYqASNNKhotQLdJH9N83jniXJyinmDX";
     @Value("${owner.address}}")
     private String ownerAddress;
 
+    // String senderPrivateKey = "priSPKkeE5bJuRdsbBeYRMHR6vF6M6PJV97jbwAHomVQodn3x3";
     @Value("$owner.privateKey")
     private String ownerPrivateKey;
 
     private static final String GET_CERT_BY_ID
-            = "{\"function\":\"getCertById(string)\",\"args\":\"'{}'\"}";
+            = "{\"function\":\"getCertById(string)\",\"args\":\"'{}'\",\"return\":\"returns(bytes)\"}";
 
     private static final String GET_PTCTRUSTROOT_BY_ID
-            = "{\"function\":\"getPTCTrustRootById(bytes32)\",\"args\":\"'{}'\"}";
+            = "{\"function\":\"getPTCTrustRootById(bytes32)\",\"args\":\"'{}'\",\"return\":\"returns(bytes)\"}";
 
     private static final String ADD_PTCTRUSTROOT_BY_PTCOID_TEMPLATE
             = "{\"function\":\"addPTCTR(bytes32,bytes)\",\"args\":\"'{}','{}'\"}";
@@ -106,6 +115,15 @@ public class VcExternalBiz {
 
     private static final String BINDING_DOMAIN_NAME_WITH_TPBTA_TEMPLATE
             = "{\"function\":\"bindingDomainNameWithTPBTA(string,bytes)\",\"args\":\"'{}','{}'\"}";
+
+    private static final String GET_TPBTA_BY_LANE
+            = "{\"function\":\"getTPBTAByLane(string, uint16)\",\"args\":\"'{}','{}'\",\"return\":\"returns(bytes)\"}";
+
+    private static final String GET_TPBTA_LATEST_VERSION_BY_LANE
+            = "{\"function\":\"getTPBTALatestVersionByLane(string)\",\"args\":\"'{}'\",\"return\":\"returns(uint16)\"}";
+
+    private static final String ADD_TPBTA_BY_LANE
+            = "{\"function\":\"addTPBTA(string, uint16, bytes)\",\"args\":\"'{}','{}','{}'\"}";
 
     private void isBackbone(String publicKey) {
         PublicKeyManager publicKeyManager = new PublicKeyManager(publicKey);
@@ -157,8 +175,7 @@ public class VcExternalBiz {
     }
 
     private void isRelayer(String publicKey) {
-        PublicKeyManager publicKeyManager = new PublicKeyManager(publicKey);
-        ObjectIdentity objectIdentity = new ObjectIdentity(ObjectIdentityType.BID, publicKeyManager.getEncAddress().getBytes());
+        ObjectIdentity objectIdentity = new X509PubkeyInfoObjectIdentity(Base64.decode(publicKey));
         VcAuditDomain vcAuditDomain = vcAuditService.getVcIdByVcOwner(objectIdentity.encode());
         if (Tools.isNull(vcAuditDomain)) {
             throw new APIException(ExceptionEnum.CREDENTIAL_NOT_EXIST);
@@ -176,12 +193,29 @@ public class VcExternalBiz {
         }
     }
 
-    private void checkVcApply(String publicKey, VcApplyReqDto vcApplyReqDto) throws Exception {
+    private void checkVcApply(String publicKey, String signAlgo, VcApplyReqDto vcApplyReqDto) throws Exception {
         //sign verify
-        byte[] sign = vcApplyReqDto.getSign();
-        byte[] content = vcApplyReqDto.getContent();
+        byte[] sign = vcApplyReqDto.getSign(); //clientCredential.signAuthorizedRequest(certSigningRequest.getEncodedToSign())
+        byte[] content = vcApplyReqDto.getContent(); //AbstractCrossChainCertificate certSigningRequest
         boolean verifyResult;
-        verifyResult = PublicKeyManager.verify(content, sign, publicKey);
+
+        AbstractCrossChainCertificate crossChainCertificate = CrossChainCertificateFactory.createCrossChainCertificate(content);
+        if(crossChainCertificate.getType() == CrossChainCertificateTypeEnum.RELAYER_CERTIFICATE
+                || crossChainCertificate.getType() == CrossChainCertificateTypeEnum.PROOF_TRANSFORMATION_COMPONENT_CERTIFICATE) {
+            verifyResult = PublicKeyManager.verify(content, sign, publicKey);
+        } else {
+            verifyResult = SignAlgoEnum.getByName(signAlgo).getSigner().verify(
+                    new X509PubkeyInfoObjectIdentity(Base64.decode(publicKey)).getPublicKey(),
+                    content,
+                    sign
+            );
+        }
+        /*verifyResult = SignAlgoEnum.getByName(signAlgo).getSigner().verify(
+                new X509PubkeyInfoObjectIdentity(Base64.decode(publicKey)).getPublicKey(),
+                content,
+                sign
+        );*/
+//        verifyResult = PublicKeyManager.verify(content, sign, publicKey);
         if (!verifyResult) {
             throw new APIException(ExceptionEnum.SIGN_ERROR);
         }
@@ -208,10 +242,11 @@ public class VcExternalBiz {
 
     public DataResp<VcApplyRespDto> vcApply(VcApplyReqDto vcApplyReqDto) {
         DataResp<VcApplyRespDto> dataResp = new DataResp<>();
-        String publicKey = vcApplyReqDto.getPublicKey();
+        String publicKey = vcApplyReqDto.getPublicKey(); // clientCredential.getBifFormatAuthorizedPublicKey()
+        String signAlgo = vcApplyReqDto.getSignAlgo();
         try {
             //check
-            checkVcApply(publicKey, vcApplyReqDto);
+            checkVcApply(publicKey, signAlgo, vcApplyReqDto);
             String applyNo = IdGenerator.createApplyNo();
             VcRecordDomain domain = buildVcRecordDomain(applyNo, publicKey, vcApplyReqDto);
             vcRecordService.insert(domain);
@@ -228,14 +263,17 @@ public class VcExternalBiz {
         return dataResp;
     }
 
-    private VcRecordDomain buildVcRecordDomain(String applyNo, String publicKey, VcApplyReqDto vcApplyReqDto) {
+    private VcRecordDomain buildVcRecordDomain(String applyNo, String authorizedPublicKey, VcApplyReqDto vcApplyReqDto) {
         VcRecordDomain domain = new VcRecordDomain();
         domain.setApplyNo(applyNo);
+        AbstractCrossChainCertificate crossChainCertificate = CrossChainCertificateFactory.createCrossChainCertificate(vcApplyReqDto.getContent());
+        PublicKey ownerPublicKey = CrossChainCertificateUtil.getPublicKeyFromCrossChainCertificate(crossChainCertificate);
         domain.setContent(vcApplyReqDto.getContent());
         domain.setCredentialType(vcApplyReqDto.getCredentialType());
         domain.setStatus(StatusEnum.APPLYING.getCode());
         domain.setPublicKey(vcApplyReqDto.getPublicKey());
-        PublicKeyManager publicKeyManager = new PublicKeyManager(publicKey);
+        domain.setOwnerPublicKey(Base64.encode(ownerPublicKey.getEncoded()));
+        PublicKeyManager publicKeyManager = new PublicKeyManager(authorizedPublicKey);
         ObjectIdentity objectIdentity = new ObjectIdentity(ObjectIdentityType.BID, publicKeyManager.getEncAddress().getBytes());
         domain.setUserId(objectIdentity.encode());
         domain.setCreateTime(DateUtil.currentSeconds());
@@ -347,7 +385,7 @@ public class VcExternalBiz {
     public DataResp<VcPTCTrustRootRespDto> vcAddPTCTrustRoot(VcPTCTrustRootReqDto reqDto) {
         DataResp<VcPTCTrustRootRespDto> dataResp = new DataResp<>();
         // read from arguments, decode VcPTCTrustRoot
-        byte[] content = reqDto.getContent();
+        byte[] content = reqDto.getPtcTrustRoot();
         PTCTrustRoot ptcTrustRootReq = PTCTrustRoot.decode(content);
         // get certificate from contract
         String vcId = ptcTrustRootReq.getPtcCrossChainCert().getId();
@@ -360,6 +398,7 @@ public class VcExternalBiz {
                 )
         );
         bifContractCallRequest.setContractAddress(ptcContractAddress);
+        bifContractCallRequest.setGasPrice(1L);
         BIFContractService bifContractService = bifsdk.getBIFContractService();
         BIFContractCallResponse callResp = bifContractService.contractQuery(bifContractCallRequest);
         // decode byte to ptc certificate
@@ -379,17 +418,12 @@ public class VcExternalBiz {
                             ptcTrustRootReq.getSig()
                     )) {
                         // if ptcTrustRoot has been registered
-                        bifContractCallRequest.setContractAddress(ptcTrustRootContractAddress);
                         bifContractCallRequest.setInput(
                                 StrUtil.format(
-                                        GET_PTCTRUSTROOT_BY_ID, reqDto.getPtcOid()
+                                        GET_PTCTRUSTROOT_BY_ID, HashAlgoEnum.KECCAK_256.hash(ptcTrustRootReq.encode())
                                 )
                         );
-                        // BIF test net has some problems about gas calculation
-                        // So we just set gas manually here.
-                        // would delete it in the future.
-                        bifContractCallRequest.setGasPrice(1L);
-
+                        bifContractCallRequest.setContractAddress(ptcTrustRootContractAddress);
                         callResp = bifContractService.contractQuery(bifContractCallRequest);
                         if (0 != callResp.getErrorCode()) {
                             throw new APIException(
@@ -406,11 +440,11 @@ public class VcExternalBiz {
                         // String senderPrivateKey = "priSPKkeE5bJuRdsbBeYRMHR6vF6M6PJV97jbwAHomVQodn3x3";
                         bifContractInvokeRequest.setSenderAddress(ownerAddress);
                         bifContractInvokeRequest.setPrivateKey(ownerPrivateKey);
-                        // not registered: addPTCTR
+                        // not registered: addPTCTrustRoot
                         bifContractInvokeRequest.setInput(
                                 StrUtil.format(
                                         ADD_PTCTRUSTROOT_BY_PTCOID_TEMPLATE,
-                                        reqDto.getPtcOid(), "0x" + HexUtil.encodeHexStr(content)
+                                        HashAlgoEnum.KECCAK_256.hash(ptcTrustRootReq.encode()), "0x" + HexUtil.encodeHexStr(content)
                                 )
                         );
                         if (JSONObject.parseObject(JSONObject.toJSONString(callResp.getResult().getQueryRets().get(0))).getJSONObject("result") != null) {
@@ -420,10 +454,12 @@ public class VcExternalBiz {
                                 bifContractInvokeRequest.setInput(
                                         StrUtil.format(
                                                 UPGRADE_PTCTRUSTROOT_BY_PTCOID_TEMPLATE,
-                                                reqDto.getPtcOid(), "0x" + HexUtil.encodeHexStr(content)
+                                                HashAlgoEnum.KECCAK_256.hash(ptcTrustRootReq.encode()), "0x" + HexUtil.encodeHexStr(content)
                                         )
                                 );
                             }
+                        } else {
+                            throw new APIException(ExceptionEnum.PARAME_ERROR);
                         }
                         bifContractInvokeRequest.setContractAddress(ptcTrustRootContractAddress);
                         BIFContractInvokeResponse response = bifContractService.contractInvoke(bifContractInvokeRequest);
@@ -437,6 +473,7 @@ public class VcExternalBiz {
                                     )
                             );
                         }
+                        // TODO: return的VcPTCTrustRootRespDto数据结构要修改，不应该只是status和txHash
                         VcPTCTrustRootRespDto vcPTCTrustRootRespDto = new VcPTCTrustRootRespDto();
                         vcPTCTrustRootRespDto.setStatus(true);
                         vcPTCTrustRootRespDto.setTxHash(response.getResult().getHash());
@@ -445,7 +482,11 @@ public class VcExternalBiz {
                         logger.error("addPTCTrustRoot verify signature failed");
                         throw new APIException(ExceptionEnum.PTCTRUSTROOT_SIGN_VERIFY_ERROR);
                     }
+                } else {
+                    throw new APIException(ExceptionEnum.PARAME_ERROR);
                 }
+            } else {
+                throw new APIException(ExceptionEnum.PARAME_ERROR);
             }
         } catch (APIException e) {
             dataResp.buildAPIExceptionField(e);
@@ -455,65 +496,118 @@ public class VcExternalBiz {
 
     public DataResp<VcTpBtaRespDto> vcAddThirdPartyBlockchainTrustAnchor(VcTpBtaReqDto reqDto) {
         DataResp<VcTpBtaRespDto> dataResp = new DataResp<>();
-        byte[] content = reqDto.getContent();
-        // decode byte to TPBTA
-        // ThirdPartyBlockchainTrustAnchor tpbta = new ThirdPartyBlockchainTrustAnchorV1();
-        // ThirdPartyBlockchainTrustAnchor tpbta = ThirdPartyBlockchainTrustAnchor.decode(content);
-        BIFSDK bifsdk = BIFSDK.getInstance(sdkUrl); // create a chain client
-        // read certificate from database by publicKey
-        String publicKey = reqDto.getPublicKey();
-        PublicKeyManager publicKeyManager = new PublicKeyManager(publicKey);
-        ObjectIdentity objectIdentity = new ObjectIdentity(ObjectIdentityType.BID, publicKeyManager.getEncAddress().getBytes());
-        VcAuditDomain vcAuditDomain = vcAuditService.getVcIdByVcOwner(objectIdentity.encode());
-        if (Tools.isNull(vcAuditDomain)) {
-            throw new APIException(ExceptionEnum.CREDENTIAL_NOT_EXIST);
-        }
-        VcRecordDomain vcRecordDomain = vcRecordService.getVcRecord4VcId(vcAuditDomain.getVcId());
-        // get certificate
-        // Integer credentialType = vcRecordDomain.getCredentialType();
-        // if(credentialType == CrossChainCertificateTypeEnum.RELAYER_CERTIFICATE.ordinal()) {}
-        AbstractCrossChainCertificate certRecover = CrossChainCertificateFactory.createCrossChainCertificate(vcRecordDomain.getContent());
-        // verify if the sender's identity is relayer
+        byte[] tpbta = reqDto.getTpbta();
         try {
+//            PublicKey publicKey = new X509PubkeyInfoObjectIdentity(Base64.decode(reqDto.getPublicKey())).getPublicKey();
+
+            /*// recover certificate from BCDNS service's database by publicKey in request body
+            PublicKeyManager publicKeyManager = new PublicKeyManager(reqDto.getPublicKey());
+
+            ObjectIdentity objectIdentity = new ObjectIdentity(ObjectIdentityType.BID, publicKeyManager.getEncAddress().getBytes());
+            VcAuditDomain vcAuditDomain = vcAuditService.getVcIdByVcOwner(objectIdentity.encode());
+            if (Tools.isNull(vcAuditDomain)) {
+                throw new APIException(ExceptionEnum.CREDENTIAL_NOT_EXIST);
+            }
+            VcRecordDomain vcRecordDomain = vcRecordService.getVcRecord4VcId(vcAuditDomain.getVcId());
+            AbstractCrossChainCertificate certRecover = CrossChainCertificateFactory.createCrossChainCertificate(vcRecordDomain.getContent());*/
+
+            // recover certificate from BCDNS service's database by publicKey in request body
+            PublicKey publicKey = new X509PubkeyInfoObjectIdentity(Base64.decode(reqDto.getPublicKey())).getPublicKey();
+            String publicKeyStr = Base64.encode(publicKey.getEncoded());
+            VcRecordDomain vcRecordDomain = vcRecordService.getVcRecord4OwnerPubKey(publicKeyStr);
+            AbstractCrossChainCertificate certRecover = CrossChainCertificateFactory.createCrossChainCertificate(vcRecordDomain.getContent());
+
+            /* 1. verify if the sender's identity is relayer
+            if (vcRecordDomain.getCredentialType() != CrossChainCertificateTypeEnum.RELAYER_CERTIFICATE.ordinal()) {
+                throw new APIException(ExceptionEnum.TPBTA_BELONG_TYPE_ERROR);
+            } */
             if (CrossChainCertificateTypeEnum.getTypeByCredentialSubject(certRecover.getCredentialSubjectInstance())
                     != CrossChainCertificateTypeEnum.RELAYER_CERTIFICATE) {
-                throw new APIException(ExceptionEnum.TPBTA_TYPE_ERROR);
+                throw new APIException(ExceptionEnum.TPBTA_BELONG_TYPE_ERROR);
             }
-            ;
-            // verify if the sig is valid
-            byte[] sign = reqDto.getSign();
+            /*// 2. verify if the signature is valid with publicKey which stored in BCDNS service
             PublicKeyManager pubKeyInBCDNS = new PublicKeyManager(vcRecordDomain.getPublicKey());
-            if (!pubKeyInBCDNS.verify(content, reqDto.getSign())) {
+            if (!pubKeyInBCDNS.verify(tpbta, reqDto.getSign())) {
+                throw new APIException(ExceptionEnum.TPBTA_SIGN_VERIFY_ERROR);
+            }*/
+            // 修改验证
+            if (!SignAlgoEnum.getByName(reqDto.getSignAlgo()).getSigner().verify(
+                    CrossChainCertificateUtil.getPublicKeyFromCrossChainCertificate(certRecover),
+                    reqDto.getTpbta(),
+                    reqDto.getSign()
+            )) {
                 throw new APIException(ExceptionEnum.TPBTA_SIGN_VERIFY_ERROR);
             }
-            // upload to bif chain's ThirdPartyBlockchainTrustAnchor contract
-            BIFContractInvokeRequest bifContractInvokeRequest = new BIFContractInvokeRequest();
-            // String senderAddress = "did:bid:efYqASNNKhotQLdJH9N83jniXJyinmDX";
-            // String senderPrivateKey = "priSPKkeE5bJuRdsbBeYRMHR6vF6M6PJV97jbwAHomVQodn3x3";
-            // String addTpBtaInput = StrUtil.format("{\"function\":\"addTPBTA(string,bytes)\",\"args\":\"'{}','{}'\"}", publicKey, "0x" + HexUtil.encodeHexStr(content));
-            bifContractInvokeRequest.setSenderAddress(ownerAddress);
-            bifContractInvokeRequest.setPrivateKey(ownerPrivateKey);
-            bifContractInvokeRequest.setContractAddress(relayContractAddress);
-            bifContractInvokeRequest.setInput(
-                    StrUtil.format(
-                            BINDING_DOMAIN_NAME_WITH_TPBTA_TEMPLATE,
-                            reqDto.getDomainName(), content
-                    )
-            );
+            // 3. upload to bif chain's ThirdPartyBlockchainTrustAnchor contract
+            BIFSDK bifsdk = BIFSDK.getInstance(sdkUrl);
             BIFContractService bifContractService = bifsdk.getBIFContractService();
-            BIFContractInvokeResponse response = bifContractService.contractInvoke(bifContractInvokeRequest);
-            if (0 != response.getErrorCode()) {
-                throw new APIException(
-                        ExceptionEnum.REGISTER_TPBTA_ERROR,
+            BIFContractCallRequest bifContractCallRequest = new BIFContractCallRequest();
+            bifContractCallRequest.setContractAddress(tpbtaContractAddress);
+            ThirdPartyBlockchainTrustAnchor tpbtaReq = ThirdPartyBlockchainTrustAnchor.decode(tpbta);
+            ThirdPartyBlockchainTrustAnchor.TypeEnum tpbtaType = ThirdPartyBlockchainTrustAnchor.TypeEnum.parseFrom(tpbtaReq.getCrossChainLane());
+            if (!tpbtaType.equals(ThirdPartyBlockchainTrustAnchor.TypeEnum.BLOCKCHAIN_LEVEL)) {
+                String senderDomain = tpbtaReq.getCrossChainLane().getSenderDomain().getDomain();
+                // check if Blockchain Level TPBTA exist
+                bifContractCallRequest.setInput(
                         StrUtil.format(
-                                "failed to register TPBTA to BIF chain ( err_code: {}, err_msg: {} )",
-                                response.getErrorCode(), response.getErrorDesc()
+                                GET_TPBTA_BY_LANE, senderDomain, 0
                         )
                 );
+                BIFContractCallResponse callResp = bifContractService.contractQuery(bifContractCallRequest);
+                if (ExceptionEnum.SUCCESS.getErrorCode().equals(callResp.getErrorCode())) {
+                    if (JSONObject.parseObject(JSONObject.toJSONString(callResp.getResult().getQueryRets().get(0))).getJSONObject("result") != null) {
+                        String resp = decodeResultFromResponse(callResp);
+                        // Blockchain Level TPBTA has not been registered
+                        if (!Objects.equals(resp, "0x00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000")) {
+                            // 有更高级的TPBTA(BLOCKCHAIN_LEVEL)，返回失败
+                            VcTpBtaRespDto vcTpBtaRespDto = new VcTpBtaRespDto();
+                            vcTpBtaRespDto.setStatus(false);
+                            // 设置错误类型or抛异常
+                            dataResp.setData(vcTpBtaRespDto);
+                            return dataResp;
+                        } else {
+                            // 未注册BLOCKCHAIN_LEVEL的TPBTA
+                            if (!tpbtaType.equals(ThirdPartyBlockchainTrustAnchor.TypeEnum.CHANNEL_LEVEL)) {
+                                // String receiverDomain = tpbtaReq.getCrossChainLane().getReceiverDomain().getDomain();
+                                bifContractCallRequest.setInput(
+                                        StrUtil.format(
+                                                GET_TPBTA_BY_LANE,
+                                                StrUtil.builder().append(tpbtaReq.getCrossChainLane().getCrossChainChannel().getSenderDomain().getDomain()).append("@").append(tpbtaReq.getCrossChainLane().getCrossChainChannel().getReceiverDomain().getDomain()).toString(),
+                                                0
+                                        )
+                                );
+                                callResp = bifContractService.contractQuery(bifContractCallRequest);
+                                if (ExceptionEnum.SUCCESS.getErrorCode().equals(callResp.getErrorCode())) {
+                                    if (JSONObject.parseObject(JSONObject.toJSONString(callResp.getResult().getQueryRets().get(0))).getJSONObject("result") != null) {
+                                        resp = decodeResultFromResponse(callResp);
+                                        if (!Objects.equals(resp, "0x00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000")) {
+                                            // 有更高级的TPBTA(CHANNEL_LEVEL)，返回失败
+                                            VcTpBtaRespDto vcTpBtaRespDto = new VcTpBtaRespDto();
+                                            vcTpBtaRespDto.setStatus(false);
+                                            // 设置错误类型or抛异常
+                                            dataResp.setData(vcTpBtaRespDto);
+                                            return dataResp;
+                                        }
+                                    } else {
+                                        throw new APIException(ExceptionEnum.PARAME_ERROR);
+                                    }
+                                } else {
+                                    throw new APIException(ExceptionEnum.PARAME_ERROR);
+                                }
+                            }
+                        }
+                    } else {
+                        throw new APIException(ExceptionEnum.PARAME_ERROR);
+                    }
+                } else {
+                    throw new APIException(ExceptionEnum.PARAME_ERROR);
+                }
             }
-            VcTpBtaRespDto vcTpBtaRespDto = new VcTpBtaRespDto();
-            vcTpBtaRespDto.setStatus(true);
-            vcTpBtaRespDto.setTxHash(response.getResult().getHash());
+            BIFContractInvokeRequest bifContractInvokeRequest = new BIFContractInvokeRequest();
+            bifContractInvokeRequest.setSenderAddress(ownerAddress);
+            bifContractInvokeRequest.setPrivateKey(ownerPrivateKey);
+            bifContractInvokeRequest.setContractAddress(tpbtaContractAddress);
+            VcTpBtaRespDto vcTpBtaRespDto = bifAddThirdPartyBlockchainTrustAnchor(bifContractService, bifContractInvokeRequest, tpbtaReq.getCrossChainLane().getLaneKey(), tpbtaReq.getTpbtaVersion(), tpbta);
             dataResp.setData(vcTpBtaRespDto);
         } catch (APIException e) {
             logger.error("vcAddTpBta failed", e);
@@ -533,5 +627,57 @@ public class VcExternalBiz {
             res = StrUtil.removePrefix(res.trim(), "0x");
         }
         return res;
+    }
+
+    private VcTpBtaRespDto bifAddThirdPartyBlockchainTrustAnchor(
+            BIFContractService bifContractService,
+            BIFContractInvokeRequest bifContractInvokeRequest,
+            String tpbtaLane,
+            int tpbtaVersion,
+            byte[] tpbta
+    ) {
+        bifContractInvokeRequest.setInput(
+                StrUtil.format(
+                        ADD_TPBTA_BY_LANE, tpbtaLane, tpbtaVersion, "0x" + HexUtil.encodeHexStr(tpbta) // yuechi: maybe wrong???
+                )
+        );
+        BIFContractInvokeResponse response = bifContractService.contractInvoke(bifContractInvokeRequest);
+        if (0 != response.getErrorCode()) {
+            throw new APIException(
+                    ExceptionEnum.REGISTER_TPBTA_ERROR,
+                    StrUtil.format(
+                            "failed to register TPBTA to BIF chain ( err_code: {}, err_msg: {} )",
+                            response.getErrorCode(), response.getErrorDesc()
+                    )
+            );
+        }
+        // TODO: return的VcPTCTrustRootRespDto数据结构要修改，不应该只是status和txHash
+        VcTpBtaRespDto vcTpBtaRespDto = new VcTpBtaRespDto();
+        vcTpBtaRespDto.setStatus(true);
+        vcTpBtaRespDto.setTxHash(response.getResult().getHash());
+        return vcTpBtaRespDto;
+    }
+
+    private String getTPBTALatestVersion(String tpbtaLane) {
+        String result = "";
+        BIFSDK bifsdk = BIFSDK.getInstance(sdkUrl);
+        BIFContractService bifContractService = bifsdk.getBIFContractService();
+        BIFContractCallRequest bifContractCallRequest = new BIFContractCallRequest();
+        bifContractCallRequest.setContractAddress(tpbtaContractAddress);
+        bifContractCallRequest.setInput(
+                StrUtil.format(
+                        GET_TPBTA_LATEST_VERSION_BY_LANE,
+                        tpbtaLane
+                )
+        );
+        BIFContractCallResponse callResp = bifContractService.contractQuery(bifContractCallRequest);
+        if (ExceptionEnum.SUCCESS.getErrorCode().equals(callResp.getErrorCode())) {
+            if (JSONObject.parseObject(JSONObject.toJSONString(callResp.getResult().getQueryRets().get(0))).getJSONObject("result") != null) {
+                result = decodeResultFromResponse(callResp);
+            }
+        } else {
+            throw new APIException(ExceptionEnum.PARAME_ERROR);
+        }
+        return result;
     }
 }
