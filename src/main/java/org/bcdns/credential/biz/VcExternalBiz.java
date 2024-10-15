@@ -12,23 +12,19 @@ import cn.bif.module.encryption.key.PublicKeyManager;
 import cn.hutool.core.codec.Base64;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.HexUtil;
-import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSONObject;
 import com.alipay.antchain.bridge.commons.bcdns.*;
 import com.alipay.antchain.bridge.commons.bcdns.utils.CrossChainCertificateUtil;
-import com.alipay.antchain.bridge.commons.core.base.CrossChainDomain;
 import com.alipay.antchain.bridge.commons.core.base.ObjectIdentity;
 import com.alipay.antchain.bridge.commons.core.base.ObjectIdentityType;
 import com.alipay.antchain.bridge.commons.core.base.X509PubkeyInfoObjectIdentity;
 import com.alipay.antchain.bridge.commons.core.ptc.PTCTrustRoot;
 import com.alipay.antchain.bridge.commons.core.ptc.ThirdPartyBlockchainTrustAnchor;
-import com.alipay.antchain.bridge.commons.core.ptc.ThirdPartyBlockchainTrustAnchorV1;
 import com.alipay.antchain.bridge.commons.exception.AntChainBridgeCommonsException;
 import com.alipay.antchain.bridge.commons.exception.CommonsErrorCodeEnum;
 import com.alipay.antchain.bridge.commons.utils.crypto.HashAlgoEnum;
 import com.alipay.antchain.bridge.commons.utils.crypto.SignAlgoEnum;
-import com.fasterxml.jackson.databind.ser.Serializers;
 import org.bcdns.credential.common.constant.Constants;
 import org.bcdns.credential.common.utils.IdGenerator;
 import org.bcdns.credential.common.utils.Tools;
@@ -93,11 +89,9 @@ public class VcExternalBiz {
     @Value("${sdk.url}")
     private String sdkUrl;
 
-    // String senderAddress = "did:bid:efYqASNNKhotQLdJH9N83jniXJyinmDX";
     @Value("${owner.address}}")
     private String ownerAddress;
 
-    // String senderPrivateKey = "priSPKkeE5bJuRdsbBeYRMHR6vF6M6PJV97jbwAHomVQodn3x3";
     @Value("$owner.privateKey")
     private String ownerPrivateKey;
 
@@ -210,12 +204,6 @@ public class VcExternalBiz {
                     sign
             );
         }
-        /*verifyResult = SignAlgoEnum.getByName(signAlgo).getSigner().verify(
-                new X509PubkeyInfoObjectIdentity(Base64.decode(publicKey)).getPublicKey(),
-                content,
-                sign
-        );*/
-//        verifyResult = PublicKeyManager.verify(content, sign, publicKey);
         if (!verifyResult) {
             throw new APIException(ExceptionEnum.SIGN_ERROR);
         }
@@ -242,7 +230,7 @@ public class VcExternalBiz {
 
     public DataResp<VcApplyRespDto> vcApply(VcApplyReqDto vcApplyReqDto) {
         DataResp<VcApplyRespDto> dataResp = new DataResp<>();
-        String publicKey = vcApplyReqDto.getPublicKey(); // clientCredential.getBifFormatAuthorizedPublicKey()
+        String publicKey = vcApplyReqDto.getPublicKey();
         String signAlgo = vcApplyReqDto.getSignAlgo();
         try {
             //check
@@ -436,8 +424,6 @@ public class VcExternalBiz {
                         }
                         // upload ptcTrustRoot to PTCTrustRootManager contract
                         BIFContractInvokeRequest bifContractInvokeRequest = new BIFContractInvokeRequest();
-                        // String senderAddress = "did:bid:efYqASNNKhotQLdJH9N83jniXJyinmDX";
-                        // String senderPrivateKey = "priSPKkeE5bJuRdsbBeYRMHR6vF6M6PJV97jbwAHomVQodn3x3";
                         bifContractInvokeRequest.setSenderAddress(ownerAddress);
                         bifContractInvokeRequest.setPrivateKey(ownerPrivateKey);
                         // not registered: addPTCTrustRoot
@@ -498,39 +484,18 @@ public class VcExternalBiz {
         DataResp<VcTpBtaRespDto> dataResp = new DataResp<>();
         byte[] tpbta = reqDto.getTpbta();
         try {
-//            PublicKey publicKey = new X509PubkeyInfoObjectIdentity(Base64.decode(reqDto.getPublicKey())).getPublicKey();
-
-            /*// recover certificate from BCDNS service's database by publicKey in request body
-            PublicKeyManager publicKeyManager = new PublicKeyManager(reqDto.getPublicKey());
-
-            ObjectIdentity objectIdentity = new ObjectIdentity(ObjectIdentityType.BID, publicKeyManager.getEncAddress().getBytes());
-            VcAuditDomain vcAuditDomain = vcAuditService.getVcIdByVcOwner(objectIdentity.encode());
-            if (Tools.isNull(vcAuditDomain)) {
-                throw new APIException(ExceptionEnum.CREDENTIAL_NOT_EXIST);
-            }
-            VcRecordDomain vcRecordDomain = vcRecordService.getVcRecord4VcId(vcAuditDomain.getVcId());
-            AbstractCrossChainCertificate certRecover = CrossChainCertificateFactory.createCrossChainCertificate(vcRecordDomain.getContent());*/
-
             // recover certificate from BCDNS service's database by publicKey in request body
             PublicKey publicKey = new X509PubkeyInfoObjectIdentity(Base64.decode(reqDto.getPublicKey())).getPublicKey();
             String publicKeyStr = Base64.encode(publicKey.getEncoded());
             VcRecordDomain vcRecordDomain = vcRecordService.getVcRecord4OwnerPubKey(publicKeyStr);
             AbstractCrossChainCertificate certRecover = CrossChainCertificateFactory.createCrossChainCertificate(vcRecordDomain.getContent());
 
-            /* 1. verify if the sender's identity is relayer
-            if (vcRecordDomain.getCredentialType() != CrossChainCertificateTypeEnum.RELAYER_CERTIFICATE.ordinal()) {
-                throw new APIException(ExceptionEnum.TPBTA_BELONG_TYPE_ERROR);
-            } */
+            /* 1. verify if the sender's identity is relayer */
             if (CrossChainCertificateTypeEnum.getTypeByCredentialSubject(certRecover.getCredentialSubjectInstance())
                     != CrossChainCertificateTypeEnum.RELAYER_CERTIFICATE) {
                 throw new APIException(ExceptionEnum.TPBTA_BELONG_TYPE_ERROR);
             }
-            /*// 2. verify if the signature is valid with publicKey which stored in BCDNS service
-            PublicKeyManager pubKeyInBCDNS = new PublicKeyManager(vcRecordDomain.getPublicKey());
-            if (!pubKeyInBCDNS.verify(tpbta, reqDto.getSign())) {
-                throw new APIException(ExceptionEnum.TPBTA_SIGN_VERIFY_ERROR);
-            }*/
-            // 修改验证
+            // 2. verify if the signature is valid with publicKey which stored in BCDNS service
             if (!SignAlgoEnum.getByName(reqDto.getSignAlgo()).getSigner().verify(
                     CrossChainCertificateUtil.getPublicKeyFromCrossChainCertificate(certRecover),
                     reqDto.getTpbta(),
@@ -568,7 +533,6 @@ public class VcExternalBiz {
                         } else {
                             // 未注册BLOCKCHAIN_LEVEL的TPBTA
                             if (!tpbtaType.equals(ThirdPartyBlockchainTrustAnchor.TypeEnum.CHANNEL_LEVEL)) {
-                                // String receiverDomain = tpbtaReq.getCrossChainLane().getReceiverDomain().getDomain();
                                 bifContractCallRequest.setInput(
                                         StrUtil.format(
                                                 GET_TPBTA_BY_LANE,
@@ -651,14 +615,13 @@ public class VcExternalBiz {
                     )
             );
         }
-        // TODO: return的VcPTCTrustRootRespDto数据结构要修改，不应该只是status和txHash
         VcTpBtaRespDto vcTpBtaRespDto = new VcTpBtaRespDto();
         vcTpBtaRespDto.setStatus(true);
         vcTpBtaRespDto.setTxHash(response.getResult().getHash());
         return vcTpBtaRespDto;
     }
 
-    private String getTPBTALatestVersion(String tpbtaLane) {
+    public String getTPBTALatestVersion(String tpbtaLane) {
         String result = "";
         BIFSDK bifsdk = BIFSDK.getInstance(sdkUrl);
         BIFContractService bifContractService = bifsdk.getBIFContractService();
