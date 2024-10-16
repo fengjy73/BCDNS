@@ -1,4 +1,4 @@
-# CREATE DATABASE credential;
+CREATE DATABASE IF NOT EXISTS credential;
 USE credential;
 
 CREATE TABLE `vc_record` (

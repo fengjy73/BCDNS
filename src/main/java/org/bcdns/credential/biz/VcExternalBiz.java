@@ -47,6 +47,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.security.PublicKey;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 
@@ -129,7 +130,7 @@ public class VcExternalBiz {
         BIFContractService contractService = sdk.getBIFContractService();
         BIFContractCallResponse callResp = contractService.contractQuery(bifContractCallRequest);
         if (ExceptionEnum.SUCCESS.getErrorCode().equals(callResp.getErrorCode())) {
-            if (JSONObject.parseObject(JSONObject.toJSONString(callResp.getResult().getQueryRets().get(0))).getJSONObject("result") != null) {
+            if (((HashMap<String, Object>) callResp.getResult().getQueryRets().get(0)).containsKey("result")) {
                 JSONObject result = JSONObject.parseObject(JSONObject.toJSONString(callResp.getResult().getQueryRets().get(0))).getJSONObject("result");
                 String roleType = result.getJSONObject("data").getJSONObject("nodeInfo").getString("roleType");
                 if (!"backbone".equals(roleType)) {
@@ -154,7 +155,7 @@ public class VcExternalBiz {
         BIFContractCallResponse callResp = contractService.contractQuery(bifContractCallRequest);
 
         if (ExceptionEnum.SUCCESS.getErrorCode().equals(callResp.getErrorCode())) {
-            if (JSONObject.parseObject(JSONObject.toJSONString(callResp.getResult().getQueryRets().get(0))).getJSONObject("result") != null) {
+            if (((HashMap<String, Object>) callResp.getResult().getQueryRets().get(0)).containsKey("result")) {
                 JSONObject result = JSONObject.parseObject(JSONObject.toJSONString(callResp.getResult().getQueryRets().get(0))).getJSONObject("result");
                 String roleType = result.getJSONObject("data").getJSONObject("nodeInfo").getString("roleType");
                 if (!"super".equals(roleType) && !"validator".equals(roleType)) {
@@ -392,7 +393,7 @@ public class VcExternalBiz {
         // decode byte to ptc certificate
         try {
             if (ExceptionEnum.SUCCESS.getErrorCode().equals(callResp.getErrorCode())) {
-                if (JSONObject.parseObject(JSONObject.toJSONString(callResp.getResult().getQueryRets().get(0))).getJSONObject("result") != null) {
+                if (((HashMap<String, Object>) callResp.getResult().getQueryRets().get(0)).containsKey("result")) {
                     // JSONObject result = JSONObject.parseObject(JSONObject.toJSONString(callResp.getResult().getQueryRets().get(0))).getJSONObject("result");
                     // String data = result.getString("data"); // get (bytes)certificate from bif's contract
                     // decode result from contract to get (byte[])certificate
@@ -433,7 +434,7 @@ public class VcExternalBiz {
                                         HashAlgoEnum.KECCAK_256.hash(ptcTrustRootReq.encode()), "0x" + HexUtil.encodeHexStr(content)
                                 )
                         );
-                        if (JSONObject.parseObject(JSONObject.toJSONString(callResp.getResult().getQueryRets().get(0))).getJSONObject("result") != null) {
+                        if (((HashMap<String, Object>) callResp.getResult().getQueryRets().get(0)).containsKey("result")) {
                             resp = decodeResultFromResponse(callResp);
                             // has been registered: upgradePTCTR
                             if (!Objects.equals(resp, "0x00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000")) {
@@ -520,7 +521,7 @@ public class VcExternalBiz {
                 );
                 BIFContractCallResponse callResp = bifContractService.contractQuery(bifContractCallRequest);
                 if (ExceptionEnum.SUCCESS.getErrorCode().equals(callResp.getErrorCode())) {
-                    if (JSONObject.parseObject(JSONObject.toJSONString(callResp.getResult().getQueryRets().get(0))).getJSONObject("result") != null) {
+                    if (((HashMap<String, Object>) callResp.getResult().getQueryRets().get(0)).containsKey("result")) {
                         String resp = decodeResultFromResponse(callResp);
                         // Blockchain Level TPBTA has not been registered
                         if (!Objects.equals(resp, "0x00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000")) {
@@ -542,7 +543,7 @@ public class VcExternalBiz {
                                 );
                                 callResp = bifContractService.contractQuery(bifContractCallRequest);
                                 if (ExceptionEnum.SUCCESS.getErrorCode().equals(callResp.getErrorCode())) {
-                                    if (JSONObject.parseObject(JSONObject.toJSONString(callResp.getResult().getQueryRets().get(0))).getJSONObject("result") != null) {
+                                    if (((HashMap<String, Object>) callResp.getResult().getQueryRets().get(0)).containsKey("result")) {
                                         resp = decodeResultFromResponse(callResp);
                                         if (!Objects.equals(resp, "0x00000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000000")) {
                                             // 有更高级的TPBTA(CHANNEL_LEVEL)，返回失败
@@ -635,7 +636,7 @@ public class VcExternalBiz {
         );
         BIFContractCallResponse callResp = bifContractService.contractQuery(bifContractCallRequest);
         if (ExceptionEnum.SUCCESS.getErrorCode().equals(callResp.getErrorCode())) {
-            if (JSONObject.parseObject(JSONObject.toJSONString(callResp.getResult().getQueryRets().get(0))).getJSONObject("result") != null) {
+            if (((HashMap<String, Object>) callResp.getResult().getQueryRets().get(0)).containsKey("result")) {
                 result = decodeResultFromResponse(callResp);
             }
         } else {
