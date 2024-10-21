@@ -8,6 +8,7 @@ import cn.bif.model.request.BIFContractInvokeRequest;
 import cn.bif.model.response.BIFContractCallResponse;
 import cn.bif.model.response.BIFContractInvokeResponse;
 import cn.bif.module.contract.BIFContractService;
+import cn.bif.module.encryption.key.PrivateKeyManager;
 import cn.bif.module.encryption.key.PublicKeyManager;
 import cn.hutool.core.codec.Base64;
 import cn.hutool.core.date.DateUtil;
@@ -27,15 +28,19 @@ import com.alipay.antchain.bridge.commons.utils.crypto.HashAlgoEnum;
 import com.alipay.antchain.bridge.commons.utils.crypto.SignAlgoEnum;
 import org.bcdns.credential.common.constant.Constants;
 import org.bcdns.credential.common.utils.IdGenerator;
+import org.bcdns.credential.common.utils.JwtUtil;
+import org.bcdns.credential.common.utils.RedisUtil;
 import org.bcdns.credential.common.utils.Tools;
 import org.bcdns.credential.dto.req.*;
 import org.bcdns.credential.dto.resp.*;
 import org.bcdns.credential.enums.ExceptionEnum;
 import org.bcdns.credential.enums.StatusEnum;
 import org.bcdns.credential.exception.APIException;
+import org.bcdns.credential.model.ApiKeyDomain;
 import org.bcdns.credential.model.VcAuditDomain;
 import org.bcdns.credential.model.VcRecordDomain;
 import org.bcdns.credential.model.VcRootDomain;
+import org.bcdns.credential.service.ApiKeyService;
 import org.bcdns.credential.service.VcAuditService;
 import org.bcdns.credential.service.VcRecordService;
 import org.bcdns.credential.service.VcRootService;
@@ -55,6 +60,12 @@ import java.util.Objects;
 @Component
 public class VcExternalBiz {
 
+    @Value("${object-identity.supernode.bid-private-key}")
+    private String superNodeBidPrivateKey;
+
+    @Value("${object-identity.issuer.bid-private-key}")
+    private String issuerBidPrivateKey;
+
     @Value("${dpos.contract.address}")
     private String dposContractAddress;
 
@@ -69,6 +80,9 @@ public class VcExternalBiz {
 
     @Value("${tpbta.contract.address}")
     private String tpbtaContractAddress;
+
+    @Autowired
+    private ApiKeyService apiKeyService;
 
     @Value("${run.type}")
     private int runType;
@@ -87,14 +101,17 @@ public class VcExternalBiz {
     @Autowired
     private DistributedLock distributedLock;
 
+    @Autowired
+    private RedisUtil redisUtil;
+
     @Value("${sdk.url}")
     private String sdkUrl;
 
-    @Value("${owner.address}")
+    /*@Value("${owner.address}")
     private String ownerAddress;
 
     @Value("${owner.private-key}")
-    private String ownerPrivateKey;
+    private String ownerPrivateKey;*/
 
     private static final String GET_CERT_BY_ID
             = "{\"function\":\"getCertById(string)\",\"args\":\"'{}'\",\"return\":\"returns(bytes)\"}";
@@ -373,28 +390,35 @@ public class VcExternalBiz {
     }
 
     public DataResp<VcPTCTrustRootRespDto> vcAddPTCTrustRoot(VcPTCTrustRootReqDto reqDto) {
-        DataResp<VcPTCTrustRootRespDto> dataResp = new DataResp<>();
-        VcPTCTrustRootRespDto vcAddPTCTrustRootResp = new VcPTCTrustRootRespDto();
-        BIFContractInvokeResponse response = null;
-        // read from arguments, decode VcPTCTrustRoot
-        byte[] content = reqDto.getPtcTrustRoot();
-        PTCTrustRoot ptcTrustRootReq = PTCTrustRoot.decode(content);
-        // get certificate from contract
-        String vcId = ptcTrustRootReq.getPtcCrossChainCert().getId();
-        BIFSDK bifsdk = BIFSDK.getInstance(sdkUrl); // create a chain client
-        // call PTCManager contract to get Blockchain DomainName Service issued certificate
-        BIFContractCallRequest bifContractCallRequest = new BIFContractCallRequest();
-        bifContractCallRequest.setInput(
-                StrUtil.format(
-                        GET_CERT_BY_ID, vcId
-                )
-        );
-        bifContractCallRequest.setContractAddress(ptcContractAddress);
-        bifContractCallRequest.setGasPrice(1L);
-        BIFContractService bifContractService = bifsdk.getBIFContractService();
-        BIFContractCallResponse callResp = bifContractService.contractQuery(bifContractCallRequest);
-        // decode byte to ptc certificate
+        DataResp<VcPTCTrustRootRespDto> dataResp = null;
+        VcPTCTrustRootRespDto vcAddPTCTrustRootResp = null;
         try {
+            // get owner's privateKey && issuerId
+            ApiKeyDomain apiKeyDomain = apiKeyService.getApiKeyDomain(1);
+            String issuerPrivateKey = apiKeyDomain.getIssuerPrivateKey();
+            String issuerId = new PrivateKeyManager(issuerPrivateKey).getEncAddress();
+
+            dataResp = new DataResp<>();
+            vcAddPTCTrustRootResp = new VcPTCTrustRootRespDto();
+            BIFContractInvokeResponse response = null;
+            // read from arguments, decode VcPTCTrustRoot
+            byte[] content = reqDto.getPtcTrustRoot();
+            PTCTrustRoot ptcTrustRootReq = PTCTrustRoot.decode(content);
+            // get certificate from contract
+            String vcId = ptcTrustRootReq.getPtcCrossChainCert().getId();
+            BIFSDK bifsdk = BIFSDK.getInstance(sdkUrl); // create a chain client
+            // call PTCManager contract to get Blockchain DomainName Service issued certificate
+            BIFContractCallRequest bifContractCallRequest = new BIFContractCallRequest();
+            bifContractCallRequest.setInput(
+                    StrUtil.format(
+                            GET_CERT_BY_ID, vcId
+                    )
+            );
+            bifContractCallRequest.setContractAddress(ptcContractAddress);
+            bifContractCallRequest.setGasPrice(1L);
+            BIFContractService bifContractService = bifsdk.getBIFContractService();
+            BIFContractCallResponse callResp = bifContractService.contractQuery(bifContractCallRequest);
+            // decode byte to ptc certificate
             if (ExceptionEnum.SUCCESS.getErrorCode().equals(callResp.getErrorCode())) {
                 if (((HashMap<String, Object>) callResp.getResult().getQueryRets().get(0)).containsKey("result")) {
                     // JSONObject result = JSONObject.parseObject(JSONObject.toJSONString(callResp.getResult().getQueryRets().get(0))).getJSONObject("result");
@@ -440,9 +464,12 @@ public class VcExternalBiz {
                         }
                         // upload ptcTrustRoot to PTCTrustRootManager contract
                         BIFContractInvokeRequest bifContractInvokeRequest = new BIFContractInvokeRequest();
-                        bifContractInvokeRequest.setSenderAddress(ownerAddress);
-                        bifContractInvokeRequest.setPrivateKey(ownerPrivateKey);
+                        bifContractInvokeRequest.setSenderAddress(issuerId);
+                        bifContractInvokeRequest.setPrivateKey(issuerPrivateKey);
                         bifContractInvokeRequest.setBIFAmount(0L);
+                        bifContractInvokeRequest.setGasPrice(1L);
+                        bifContractInvokeRequest.setRemarks("contract invoke");
+                        bifContractInvokeRequest.setFeeLimit(20000000L);
                         // had not registered: addPTCTrustRoot
                         bifContractInvokeRequest.setInput(
                                 StrUtil.format(
@@ -515,6 +542,11 @@ public class VcExternalBiz {
         VcTpBtaRespDto vcAddTpBtaResp = new VcTpBtaRespDto();
         byte[] tpbta = reqDto.getTpbta();
         try {
+            // get owner's privateKey && issuerId
+            ApiKeyDomain apiKeyDomain = apiKeyService.getApiKeyDomain(1);
+            String issuerPrivateKey = apiKeyDomain.getIssuerPrivateKey();
+            String issuerId = new PrivateKeyManager(issuerPrivateKey).getEncAddress();
+
             /*// recover Relayer's cert from BIF PTCManagerContract by relayer cert's vcId in request body
             PublicKey publicKey = new X509PubkeyInfoObjectIdentity(Base64.decode(reqDto.getPublicKey())).getPublicKey();
             String publicKeyStr = Base64.encode(publicKey.getEncoded());
@@ -632,8 +664,8 @@ public class VcExternalBiz {
                         }
                     }
                     BIFContractInvokeRequest bifContractInvokeRequest = new BIFContractInvokeRequest();
-                    bifContractInvokeRequest.setSenderAddress(ownerAddress);
-                    bifContractInvokeRequest.setPrivateKey(ownerPrivateKey);
+                    bifContractInvokeRequest.setSenderAddress(issuerId);
+                    bifContractInvokeRequest.setPrivateKey(issuerPrivateKey);
                     bifContractInvokeRequest.setContractAddress(tpbtaContractAddress);
                     vcAddTpBtaResp = bifAddThirdPartyBlockchainTrustAnchor(bifContractService, bifContractInvokeRequest, tpbtaReq.getCrossChainLane().getLaneKey(), tpbtaReq.getTpbtaVersion(), tpbta);
                     dataResp.setData(vcAddTpBtaResp);
