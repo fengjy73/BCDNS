@@ -569,7 +569,7 @@ public class VcExternalBiz {
                         // check if Blockchain Level TPBTA exist
                         bifContractCallRequest.setInput(
                                 StrUtil.format(
-                                        GET_TPBTA_BY_LANE, senderDomain, 0
+                                        GET_TPBTA_BY_LANE, senderDomain, getTPBTALatestVersion(senderDomain)
                                 )
                         );
                         callResp = bifContractService.contractQuery(bifContractCallRequest);
@@ -589,7 +589,7 @@ public class VcExternalBiz {
                                                 StrUtil.format(
                                                         GET_TPBTA_BY_LANE,
                                                         StrUtil.builder().append(tpbtaReq.getCrossChainLane().getCrossChainChannel().getSenderDomain().getDomain()).append("@").append(tpbtaReq.getCrossChainLane().getCrossChainChannel().getReceiverDomain().getDomain()).toString(),
-                                                        0
+                                                        getTPBTALatestVersion(StrUtil.builder().append(tpbtaReq.getCrossChainLane().getCrossChainChannel().getSenderDomain().getDomain()).append("@").append(tpbtaReq.getCrossChainLane().getCrossChainChannel().getReceiverDomain().getDomain()).toString())
                                                 )
                                         );
                                         callResp = bifContractService.contractQuery(bifContractCallRequest);
