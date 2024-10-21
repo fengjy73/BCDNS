@@ -12,8 +12,7 @@ import static org.bcdns.credential.common.constant.MessageConstant.*;
 
 @Data
 public class VcTpBtaReqDto {
-
-    private String domainName;
+    private String vcId;
 
     private byte[] tpbta;
 

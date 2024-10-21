@@ -12,6 +12,7 @@ import cn.bif.module.encryption.key.PrivateKeyManager;
 import cn.bif.module.encryption.model.KeyType;
 import cn.hutool.core.codec.Base64;
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.util.HexUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.digest.SM3;
 import com.alipay.antchain.bridge.commons.bcdns.*;
@@ -124,7 +125,7 @@ public class VcInternalBiz {
             KeyType keyType = superNodePrivateKeyManager.getKeyType();
             if (keyType.equals(KeyType.SM2)) {
                 signAlg = SignAlgoEnum.SM3_WITH_SM2;
-            } else if (keyType.equals(KeyType.ED25519)){
+            } else if (keyType.equals(KeyType.ED25519)) {
                 signAlg = SignAlgoEnum.ED25519;
             } else {
                 throw new APIException(ExceptionEnum.KEYTYPE_ERROR);
@@ -170,19 +171,19 @@ public class VcInternalBiz {
     }
 
     private String getPTCInput(AbstractCrossChainCertificate certificate) {
-        return StrUtil.format("{\"function\":\"addCertificate(string,bytes)\",\"args\":\"'{}','{}'\"}", certificate.getId(), Base64.encode(certificate.encode()));
+        return StrUtil.format("{\"function\":\"addCertificate(string,bytes)\",\"args\":\"'{}','{}'\"}", certificate.getId(), "0x" + HexUtil.encodeHexStr(certificate.encode()));
     }
 
     private String getRelayInput(AbstractCrossChainCertificate certificate) {
         String relayAddress = BIDHelper.encAddress(BIDHelper.getKeyTypeFromPublicKey(CrossChainCertificateUtil.getPublicKeyFromCrossChainCertificate(certificate)),
                 CrossChainCertificateUtil.getRawPublicKeyFromCrossChainCertificate(certificate));
-        return StrUtil.format("{\"function\":\"addCertificate(string,bytes,address)\",\"args\":\"'{}','{}',{}\"}", certificate.getId(), Base64.encode(certificate.encode()), relayAddress);
+        return StrUtil.format("{\"function\":\"addCertificate(string,bytes,address)\",\"args\":\"'{}','{}',{}\"}", certificate.getId(), "0x" + HexUtil.encodeHexStr(certificate.encode()), relayAddress);
     }
 
     private String getDomainNameInput(AbstractCrossChainCertificate certificate) {
         DomainNameCredentialSubject domainNameCredentialSubject = DomainNameCredentialSubject.decode(certificate.getCredentialSubject());
         CrossChainDomain crossChainDomain = domainNameCredentialSubject.getDomainName();
-        return StrUtil.format("{\"function\":\"addCertificate(string,bytes,bytes)\",\"args\":\"'{}','{}','{}'\"}", certificate.getId(), crossChainDomain.getDomain(), Base64.encode(certificate.encode()));
+        return StrUtil.format("{\"function\":\"addCertificate(string,bytes,bytes)\",\"args\":\"'{}','{}','{}'\"}", certificate.getId(), crossChainDomain.getDomain(), "0x" + HexUtil.encodeHexStr(certificate.encode()));
     }
 
     private String auditTxSubmit(AbstractCrossChainCertificate certificate, String issuerPrivateKey, String issuerId, VcRecordDomain domain) {
@@ -222,15 +223,15 @@ public class VcInternalBiz {
         String txHash = "";
         BIFSDK sdk = BIFSDK.getInstance(sdkUrl);
         BIFContractInvokeResponse response = sdk.getBIFContractService().contractInvoke(request);
-        if(ExceptionEnum.SUCCESS.getErrorCode().equals(response.getErrorCode())){
+        if (ExceptionEnum.SUCCESS.getErrorCode().equals(response.getErrorCode())) {
             txHash = response.getResult().getHash();
-        }else {
+        } else {
             throw new APIException(ExceptionEnum.PARAME_ERROR);
         }
         return txHash;
     }
 
-    public AbstractCrossChainCertificate buildPTCVc(String issuerPrivateKey, String issuerId,  String vcId, VcRecordDomain domain) {
+    public AbstractCrossChainCertificate buildPTCVc(String issuerPrivateKey, String issuerId, String vcId, VcRecordDomain domain) {
         AbstractCrossChainCertificate cert = CrossChainCertificateFactory.createCrossChainCertificate(domain.getContent());
         PTCCredentialSubject ptcCredentialSubject = PTCCredentialSubject.decode(cert.getCredentialSubject());
         AbstractCrossChainCertificate certificate = CrossChainCertificateFactory.createCrossChainCertificate(
@@ -255,7 +256,7 @@ public class VcInternalBiz {
         KeyType keyType = privateKeyManager.getKeyType();
         if (keyType.equals(KeyType.SM2)) {
             signAlg = SignAlgoEnum.SM3_WITH_SM2;
-        } else if (keyType.equals(KeyType.ED25519)){
+        } else if (keyType.equals(KeyType.ED25519)) {
             signAlg = SignAlgoEnum.ED25519;
         } else {
             throw new APIException(ExceptionEnum.KEYTYPE_ERROR);
@@ -295,7 +296,7 @@ public class VcInternalBiz {
         KeyType keyType = privateKeyManager.getKeyType();
         if (keyType.equals(KeyType.SM2)) {
             signAlg = SignAlgoEnum.SM3_WITH_SM2;
-        } else if (keyType.equals(KeyType.ED25519)){
+        } else if (keyType.equals(KeyType.ED25519)) {
             signAlg = SignAlgoEnum.ED25519;
         } else {
             throw new APIException(ExceptionEnum.KEYTYPE_ERROR);
@@ -311,7 +312,7 @@ public class VcInternalBiz {
         return certificate;
     }
 
-    public AbstractCrossChainCertificate buildDomainNameVc(String issuerPrivateKey, String issuerId,  String vcId, VcRecordDomain domain){
+    public AbstractCrossChainCertificate buildDomainNameVc(String issuerPrivateKey, String issuerId, String vcId, VcRecordDomain domain) {
         AbstractCrossChainCertificate cert = CrossChainCertificateFactory.createCrossChainCertificate(domain.getContent());
         DomainNameCredentialSubject domainNameCredentialSubject = DomainNameCredentialSubject.decode(cert.getCredentialSubject());
         AbstractCrossChainCertificate certificate = CrossChainCertificateFactory.createCrossChainCertificate(
@@ -337,7 +338,7 @@ public class VcInternalBiz {
         KeyType keyType = privateKeyManager.getKeyType();
         if (keyType.equals(KeyType.SM2)) {
             signAlg = SignAlgoEnum.SM3_WITH_SM2;
-        } else if (keyType.equals(KeyType.ED25519)){
+        } else if (keyType.equals(KeyType.ED25519)) {
             signAlg = SignAlgoEnum.ED25519;
         } else {
             throw new APIException(ExceptionEnum.KEYTYPE_ERROR);
@@ -373,6 +374,7 @@ public class VcInternalBiz {
 
         return abstractCrossChainCertificate;
     }
+
     private byte[] getVcOwnerId(VcRecordDomain domain) {
         byte[] vcOwnerId = null;
         Integer credentialType = domain.getCredentialType();
@@ -493,7 +495,7 @@ public class VcInternalBiz {
             }
 
             reqDto.setStartNum((reqDto.getPageStart() - 1) * reqDto.getPageSize());
-            if(reqDto.getStatus() != null && reqDto.getStatus().length == 0) {
+            if (reqDto.getStatus() != null && reqDto.getStatus().length == 0) {
                 reqDto.setStatus(null);
             }
             List<VcRecordListDomain> vcRecordDomain = vcRecordService.queryList(reqDto);
@@ -543,11 +545,11 @@ public class VcInternalBiz {
             }
 
             VcRecordDomain vcRecordDomain = vcRecordService.queryDetail(reqDto);
-            if(!Tools.isNull(vcRecordDomain)){
+            if (!Tools.isNull(vcRecordDomain)) {
                 VcApplyDetailRespDto dto = new VcApplyDetailRespDto();
-                if(!vcRecordDomain.getStatus().equals(StatusEnum.APPLYING.getCode())){
+                if (!vcRecordDomain.getStatus().equals(StatusEnum.APPLYING.getCode())) {
                     VcAuditDomain vcAuditDomain = vcAuditService.getAuditDomain(vcRecordDomain.getApplyNo());
-                    if(!Tools.isNull(vcAuditDomain)){
+                    if (!Tools.isNull(vcAuditDomain)) {
                         dto.setAuditId(vcAuditDomain.getAuditId());
                         dto.setAuditTime(vcAuditDomain.getCreateTime());
                         dto.setAuditRemark(vcAuditDomain.getReason());
@@ -561,7 +563,7 @@ public class VcInternalBiz {
                 dto.setApplyUser(vcRecordDomain.getUserId());
                 dataResp.setData(dto);
                 dataResp.buildSuccessField();
-            }else{
+            } else {
                 dataResp.buildCommonField(ExceptionEnum.CREDENTIAL_APPLY_NOT_EXIST.getErrorCode(), ExceptionEnum.CREDENTIAL_APPLY_NOT_EXIST.getMessage());
             }
         } catch (APIException e) {
@@ -606,9 +608,9 @@ public class VcInternalBiz {
         String txHash = "";
         BIFSDK sdk = BIFSDK.getInstance(sdkUrl);
         BIFContractInvokeResponse response = sdk.getBIFContractService().contractInvoke(request);
-        if(ExceptionEnum.SUCCESS.getErrorCode().equals(response.getErrorCode())){
+        if (ExceptionEnum.SUCCESS.getErrorCode().equals(response.getErrorCode())) {
             txHash = response.getResult().getHash();
-        }else {
+        } else {
             throw new APIException(ExceptionEnum.PARAME_ERROR);
         }
         return txHash;
@@ -618,7 +620,7 @@ public class VcInternalBiz {
         DataResp<VcRevocationRespDto> dataResp = new DataResp<>();
         try {
             //check access token
-            Map<String,String> paramMap = JwtUtil.decode(accessToken);
+            Map<String, String> paramMap = JwtUtil.decode(accessToken);
             if (paramMap == null) {
                 throw new APIException(ExceptionEnum.ACCESS_TOKEN_INVALID);
             }
@@ -655,9 +657,9 @@ public class VcInternalBiz {
             respDto.setTxHash(txHash);
             dataResp.setData(respDto);
             dataResp.buildSuccessField();
-        }catch (APIException e){
+        } catch (APIException e) {
             dataResp.buildAPIExceptionField(e);
-        }catch (Exception e){
+        } catch (Exception e) {
             logger.error("revocation vc error:{}", e);
             dataResp.buildSysExceptionField();
         }

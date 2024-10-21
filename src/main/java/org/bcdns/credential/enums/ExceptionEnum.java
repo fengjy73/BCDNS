@@ -40,6 +40,14 @@ public enum ExceptionEnum {
     TPBTA_BELONG_TYPE_ERROR(100118, "tpbta belong type error"),
 
     KEYTYPE_ERROR(100119, "keytype error"),
+
+    CONTRACT_QUERY_ERROR(100120, "contract query error"),
+
+    QUERY_RESP_PARAM_ERROR(100121, "query param error"),
+
+    CONTRACT_INVOKE_ERROR(100122, "contract invoke error"),
+
+    TPBTA_LEVEL_ERROR(100123, "tpbta level error"),
     ;
     private Integer errorCode;
     private String message;
