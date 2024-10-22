@@ -21,7 +21,7 @@ import java.util.Date;
 public class ApplyTest {
     @Test
     public void testPTCApply() throws Exception {
-        PrivateKeyManager privateKeyManager = new PrivateKeyManager("priSPKeThUrwmBvigbe153GWQXRDuMUWwpM8fRBs4eQ82sQSgQ");
+        PrivateKeyManager privateKeyManager = new PrivateKeyManager("priSPKncqxV7SR5bJgTWxBpLDAotDbBsrGNAVky34VKzLXHppi");
         KeyPairEntity keyPair = KeyPairEntity.getBidAndKeyPair();
         BIDpublicKeyOperation[] biDpublicKeyOperation = new BIDpublicKeyOperation[1];
         biDpublicKeyOperation[0] = new BIDpublicKeyOperation();
@@ -103,15 +103,15 @@ public class ApplyTest {
 //        "public_key": "b065662fdd2fb283d72aa829e7694e0675c0b8ded947dfa64b0b4768ccea8b30f06801",
 //        "public_key_raw": "2fdd2fb283d72aa829e7694e0675c0b8ded947dfa64b0b4768ccea8b30f06801",
 //        "sign_type": "ed25519"
-        PrivateKeyManager privateKeyManager = new PrivateKeyManager("priSPKncqxV7SR5bJgTWxBpLDAotDbBsrGNAVky34VKzLXHppi");
+        PrivateKeyManager privateKeyManager = new PrivateKeyManager("priSPKo5zX8nHexxod3YNyuUzo5DeHyZXFHdizh5LYLUN3ZTSX");
         BIDpublicKeyOperation[] biDpublicKeyOperation = new BIDpublicKeyOperation[1];
         biDpublicKeyOperation[0] = new BIDpublicKeyOperation();
         biDpublicKeyOperation[0].setType(KeyType.ED25519);
-        biDpublicKeyOperation[0].setPublicKeyHex("b06566d3ba095bb576e8d75b9e39a3d06cdf6deb25f93d526f13040c5df9cd6c27be8e");
+        biDpublicKeyOperation[0].setPublicKeyHex("b0656687609e5254aaf4617b0f27904a477490b1952ec07eeac4dc7a00f90614e15adb");
         BIDDocumentOperation bidDocumentOperation = new BIDDocumentOperation();
         bidDocumentOperation.setPublicKey(biDpublicKeyOperation);
 
-        PublicKeyManager publicKeyManager = new PublicKeyManager("b06566d3ba095bb576e8d75b9e39a3d06cdf6deb25f93d526f13040c5df9cd6c27be8e");
+        PublicKeyManager publicKeyManager = new PublicKeyManager("b0656687609e5254aaf4617b0f27904a477490b1952ec07eeac4dc7a00f90614e15adb");
 
         AbstractCrossChainCertificate certificate = CrossChainCertificateFactory.createCrossChainCertificate(
                 CrossChainCertificateV1.MY_VERSION,
