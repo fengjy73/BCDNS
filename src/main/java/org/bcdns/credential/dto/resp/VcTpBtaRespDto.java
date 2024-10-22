@@ -5,5 +5,5 @@ import lombok.Data;
 @Data
 public class VcTpBtaRespDto {
     private boolean status;
-    private String txHash;
+    private String message;
 }

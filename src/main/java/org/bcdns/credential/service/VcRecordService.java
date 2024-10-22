@@ -33,6 +33,10 @@ public class VcRecordService {
         return vcRecordMapper.getVcRecord4UserId(vcId);
     }
 
+    public VcRecordDomain getVcRecord4OwnerPubKey(String pubKey) {
+        return vcRecordMapper.getVcRecord4OwnerPubKey(pubKey);
+    }
+
     public int updateAuditPassStatus(VcRecordDomain vcRecordDomain){
         return vcRecordMapper.updateAuditPassStatus(vcRecordDomain);
     }

@@ -22,6 +22,8 @@ public class VcApplyReqDto {
     @Length(min = 1, max = 128, message = DESC_VALID_STRING)
     private String publicKey;
 
+    private String signAlgo;
+
     private byte[] sign;
 
 }

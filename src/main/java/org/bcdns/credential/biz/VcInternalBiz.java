@@ -79,7 +79,8 @@ public class VcInternalBiz {
 
     private static final Logger logger = LoggerFactory.getLogger(VcInternalBiz.class);
 
-    private static final String decodePublicKey = "MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAINBrc5M8W270ZlkYiKZal0dvZadgq8aYRBUZjB9EUGR8FEpHgWrE3JWZcKuTUO8wL7+hTLfHrpYnIXvmhwJSn0CAwEAAQ==";
+    @Value("${issue.decrypt.public-key}")
+    private String decodePublicKey;
 
     @Autowired
     private ApiKeyService apiKeyService;
@@ -258,6 +259,8 @@ public class VcInternalBiz {
                 )
         );
 
+        logger.error("paicha: {}", issuerPrivateKey);
+        logger.info("paicha: {}", issuerPrivateKey);
         PrivateKeyManager privateKeyManager = new PrivateKeyManager(issuerPrivateKey);
         byte[] msg = certificate.getEncodedToSign();
         byte[] sign = privateKeyManager.sign(msg);
@@ -617,9 +620,9 @@ public class VcInternalBiz {
         String txHash = "";
         BIFSDK sdk = BIFSDK.getInstance(sdkUrl);
         BIFContractInvokeResponse response = sdk.getBIFContractService().contractInvoke(request);
-        if(ExceptionEnum.SUCCESS.getErrorCode().equals(response.getErrorCode())){
+        if (ExceptionEnum.SUCCESS.getErrorCode().equals(response.getErrorCode())) {
             txHash = response.getResult().getHash();
-        }else {
+        } else {
             throw new APIException(ExceptionEnum.PARAME_ERROR);
         }
         return txHash;
@@ -629,7 +632,7 @@ public class VcInternalBiz {
         DataResp<VcRevocationRespDto> dataResp = new DataResp<>();
         try {
             //check access token
-            Map<String,String> paramMap = JwtUtil.decode(accessToken);
+            Map<String, String> paramMap = JwtUtil.decode(accessToken);
             if (paramMap == null) {
                 throw new APIException(ExceptionEnum.ACCESS_TOKEN_INVALID);
             }
@@ -667,9 +670,9 @@ public class VcInternalBiz {
             respDto.setTxHash(txHash);
             dataResp.setData(respDto);
             dataResp.buildSuccessField();
-        }catch (APIException e){
+        } catch (APIException e) {
             dataResp.buildAPIExceptionField(e);
-        }catch (Exception e){
+        } catch (Exception e) {
             logger.error("revocation vc error:{}", e);
             dataResp.buildSysExceptionField();
         }

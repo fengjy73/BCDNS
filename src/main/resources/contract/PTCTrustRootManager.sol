@@ -9,7 +9,7 @@ contract PTCTrustRootManager is Ownable {
         bool status;
     }
 
-    mapping(bytes32 => PTCTrustRootInfo) private idToPTCTrustRoot; // <ObjectIdentity, PTCTrustRoot>
+    mapping(bytes32 => PTCTrustRootInfo) private idToPTCTrustRoot;
 
     event addPTCTrustRoot(bytes32 ptcId, bytes ptcTrustRoot);
     event revokePTCTrustRoot(bytes32 ptcId);
