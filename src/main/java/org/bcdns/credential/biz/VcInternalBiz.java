@@ -258,6 +258,8 @@ public class VcInternalBiz {
                 )
         );
 
+        logger.error("paicha: {}", issuerPrivateKey);
+        logger.info("paicha: {}", issuerPrivateKey);
         PrivateKeyManager privateKeyManager = new PrivateKeyManager(issuerPrivateKey);
         byte[] msg = certificate.getEncodedToSign();
         byte[] sign = privateKeyManager.sign(msg);
