@@ -31,6 +31,7 @@ import com.alipay.antchain.bridge.commons.core.ptc.PTCVerifyAnchor;
 import com.alipay.antchain.bridge.commons.core.ptc.ThirdPartyBlockchainTrustAnchorV1;
 import com.alipay.antchain.bridge.commons.utils.crypto.HashAlgoEnum;
 import com.alipay.antchain.bridge.commons.utils.crypto.SignAlgoEnum;
+import lombok.SneakyThrows;
 import org.bcdns.credential.biz.AuthBiz;
 import org.bcdns.credential.biz.VcExternalBiz;
 import org.bcdns.credential.biz.VcInternalBiz;
@@ -223,6 +224,7 @@ public class PTCTrustRootTest {
     }
 
     // ---------------------------------test add ptcTrustRoot---------------------------------
+    @SneakyThrows
     public void init() {
         DataResp<ApiKeyRespDto> initResp = inBiz.init();
         AccessTokenReqDto accessTokenReqDto = new AccessTokenReqDto();

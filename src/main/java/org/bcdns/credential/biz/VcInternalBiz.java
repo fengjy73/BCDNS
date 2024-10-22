@@ -79,7 +79,8 @@ public class VcInternalBiz {
 
     private static final Logger logger = LoggerFactory.getLogger(VcInternalBiz.class);
 
-    private static final String decodePublicKey = "MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAINBrc5M8W270ZlkYiKZal0dvZadgq8aYRBUZjB9EUGR8FEpHgWrE3JWZcKuTUO8wL7+hTLfHrpYnIXvmhwJSn0CAwEAAQ==";
+    @Value("${issue.decrypt.public-key}")
+    private String decodePublicKey;
 
     @Autowired
     private ApiKeyService apiKeyService;
