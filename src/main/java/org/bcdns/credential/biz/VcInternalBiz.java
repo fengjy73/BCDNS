@@ -19,6 +19,7 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.HexUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.digest.SM3;
+import com.alibaba.druid.filter.config.ConfigTools;
 import com.alipay.antchain.bridge.commons.bcdns.*;
 import com.alipay.antchain.bridge.commons.bcdns.utils.BIDHelper;
 import com.alipay.antchain.bridge.commons.bcdns.utils.CrossChainCertificateUtil;
@@ -49,16 +50,18 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.JedisPoolConfig;
 
 
 @Component
 public class VcInternalBiz {
 
     @Value("${object-identity.supernode.bid-private-key}")
-    private String superNodeBidPrivateKey;
+    private String encryptSuperNodeBidPrivateKey;
 
     @Value("${object-identity.issuer.bid-private-key}")
-    private String issuerBidPrivateKey;
+    private String encryptIssuerBidPrivateKey;
 
     @Value("${ptc.contract.address}")
     private String ptcContractAddress;
@@ -71,6 +74,9 @@ public class VcInternalBiz {
 
     @Value("${sdk.url}")
     private String sdkUrl;
+
+    @Value("${object-identity.publicKey}")
+    private String decodePublicKey;
 
     private static final Logger logger = LoggerFactory.getLogger(VcInternalBiz.class);
 
@@ -85,8 +91,10 @@ public class VcInternalBiz {
     @Autowired
     private VcRootService vcRootService;
 
-    public DataResp<ApiKeyRespDto> init() {
+    public DataResp<ApiKeyRespDto> init() throws Exception {
         DataResp<ApiKeyRespDto> dataResp = new DataResp<>();
+        String superNodeBidPrivateKey = ConfigTools.decrypt(decodePublicKey, encryptSuperNodeBidPrivateKey);
+        String issuerBidPrivateKey = ConfigTools.decrypt(decodePublicKey, encryptIssuerBidPrivateKey);
         PrivateKeyManager superNodePrivateKeyManager = new PrivateKeyManager(superNodeBidPrivateKey);
         PrivateKeyManager issuerPrivateKeyManager = new PrivateKeyManager(issuerBidPrivateKey);
         try {
@@ -145,7 +153,7 @@ public class VcInternalBiz {
             ApiKeyDomain apiKeyDomain1 = new ApiKeyDomain();
             apiKeyDomain1.setApiKey(apiKey);
             apiKeyDomain1.setApiSecret(secret);
-            apiKeyDomain1.setIssuerPrivateKey(issuerPrivateKeyManager.getEncPrivateKey());
+            apiKeyDomain1.setIssuerPrivateKey(encryptIssuerBidPrivateKey);
             apiKeyDomain1.setIssuerId(issuerPrivateKeyManager.getEncAddress());
             apiKeyDomain1.setInitTag(1);
             apiKeyService.insert(apiKeyDomain1);
@@ -420,7 +428,8 @@ public class VcInternalBiz {
             AbstractCrossChainCertificate abstractCrossChainCertificate = null;
             if (StatusEnum.AUDIT_PASS.getCode().equals(status)) {
                 ApiKeyDomain apiKeyDomain = apiKeyService.getApiKeyDomain(1);
-                String issuerPrivateKey = apiKeyDomain.getIssuerPrivateKey();
+                String encryptIssuerBidPrivateKey = apiKeyDomain.getIssuerPrivateKey();
+                String issuerPrivateKey = ConfigTools.decrypt(decodePublicKey, encryptIssuerBidPrivateKey);
                 //create vc
                 KeyPairEntity keyPairEntity = KeyPairEntity.getBidAndKeyPair();
                 vcId = keyPairEntity.getEncAddress();
@@ -633,7 +642,8 @@ public class VcInternalBiz {
             }
 
             ApiKeyDomain apiKeyDomain = apiKeyService.getApiKeyDomain(1);
-            String issuerPrivateKey = apiKeyDomain.getIssuerPrivateKey();
+            String encryptIssuerBidPrivateKey = apiKeyDomain.getIssuerPrivateKey();
+            String issuerPrivateKey = ConfigTools.decrypt(decodePublicKey, encryptIssuerBidPrivateKey);
 
             txHash = revokeTxSubmit(credentialId, vcRecordDomain.getCredentialType(), issuerPrivateKey, issuerId);
             if (txHash.isEmpty()) {
