@@ -1,8 +1,12 @@
 package org.bcdns.credential.biz;
 
 
+import java.security.PublicKey;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+
 import cn.bif.api.BIFSDK;
-import cn.bif.common.JsonUtils;
 import cn.bif.model.request.BIFContractCallRequest;
 import cn.bif.model.request.BIFContractInvokeRequest;
 import cn.bif.model.response.BIFContractCallResponse;
@@ -14,8 +18,11 @@ import cn.hutool.core.codec.Base64;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.HexUtil;
 import cn.hutool.core.util.StrUtil;
+import com.alibaba.druid.filter.config.ConfigTools;
 import com.alibaba.fastjson.JSONObject;
-import com.alipay.antchain.bridge.commons.bcdns.*;
+import com.alipay.antchain.bridge.commons.bcdns.AbstractCrossChainCertificate;
+import com.alipay.antchain.bridge.commons.bcdns.CrossChainCertificateFactory;
+import com.alipay.antchain.bridge.commons.bcdns.CrossChainCertificateTypeEnum;
 import com.alipay.antchain.bridge.commons.bcdns.utils.CrossChainCertificateUtil;
 import com.alipay.antchain.bridge.commons.core.base.ObjectIdentity;
 import com.alipay.antchain.bridge.commons.core.base.ObjectIdentityType;
@@ -28,7 +35,6 @@ import com.alipay.antchain.bridge.commons.utils.crypto.HashAlgoEnum;
 import com.alipay.antchain.bridge.commons.utils.crypto.SignAlgoEnum;
 import org.bcdns.credential.common.constant.Constants;
 import org.bcdns.credential.common.utils.IdGenerator;
-import org.bcdns.credential.common.utils.JwtUtil;
 import org.bcdns.credential.common.utils.RedisUtil;
 import org.bcdns.credential.common.utils.Tools;
 import org.bcdns.credential.dto.req.*;
@@ -50,11 +56,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-
-import java.security.PublicKey;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
 
 
 @Component
@@ -80,6 +81,9 @@ public class VcExternalBiz {
 
     @Value("${tpbta.contract.address}")
     private String tpbtaContractAddress;
+
+    @Value("${issue.decrypt.public-key}")
+    private String decryptPublicKey;
 
     @Autowired
     private ApiKeyService apiKeyService;
@@ -395,7 +399,7 @@ public class VcExternalBiz {
         try {
             // get owner's privateKey && issuerId
             ApiKeyDomain apiKeyDomain = apiKeyService.getApiKeyDomain(1);
-            String issuerPrivateKey = apiKeyDomain.getIssuerPrivateKey();
+            String issuerPrivateKey = ConfigTools.decrypt(decryptPublicKey, apiKeyDomain.getIssuerPrivateKey());
             String issuerId = new PrivateKeyManager(issuerPrivateKey).getEncAddress();
 
             dataResp = new DataResp<>();
@@ -439,12 +443,17 @@ public class VcExternalBiz {
                             ptcTrustRootReq.getEncodedToSign(), //data
                             ptcTrustRootReq.getSig()
                     )) {
+                        String ptcOidHash = HexUtil.encodeHexStr(HashAlgoEnum.KECCAK_256.hash(
+                                ptcTrustRootReq.getPtcCredentialSubject().getApplicant().encode()
+                        ));
+                        logger.info("upload ptc trust root with oid {}", ptcOidHash);
+
                         // if ptcTrustRoot has been registered
                         bifContractCallRequest.setInput(
                                 StrUtil.format(
                                         // PTCTrustRoot中PTC证书Owner的OID(bytes32)
                                         GET_PTCTRUSTROOT_BY_ID,
-                                        HexUtil.encodeHexStr(ptcTrustRootReq.getPtcCredentialSubject().getApplicant().encode())
+                                        "0x" + ptcOidHash
                                 )
                         );
                         bifContractCallRequest.setContractAddress(ptcTrustRootContractAddress);
@@ -470,11 +479,12 @@ public class VcExternalBiz {
                         bifContractInvokeRequest.setGasPrice(1L);
                         bifContractInvokeRequest.setRemarks("contract invoke");
                         bifContractInvokeRequest.setFeeLimit(20000000L);
+
                         // had not registered: addPTCTrustRoot
                         bifContractInvokeRequest.setInput(
                                 StrUtil.format(
                                         ADD_PTCTRUSTROOT_BY_PTCOID_TEMPLATE,
-                                        HexUtil.encodeHexStr(ptcTrustRootReq.getPtcCredentialSubject().getApplicant().encode()), "0x" + HexUtil.encodeHexStr(content)
+                                        "0x" + ptcOidHash, "0x" + HexUtil.encodeHexStr(content)
                                 )
                         );
                         if (((HashMap<String, Object>) callResp.getResult().getQueryRets().get(0)).containsKey("result")) {
@@ -484,7 +494,7 @@ public class VcExternalBiz {
                                 bifContractInvokeRequest.setInput(
                                         StrUtil.format(
                                                 UPGRADE_PTCTRUSTROOT_BY_PTCOID_TEMPLATE,
-                                                HexUtil.encodeHexStr(ptcTrustRootReq.getPtcCredentialSubject().getApplicant().encode()), "0x" + HexUtil.encodeHexStr(content)
+                                                "0x" + ptcOidHash, "0x" + HexUtil.encodeHexStr(content)
                                         )
                                 );
                             }
@@ -533,6 +543,14 @@ public class VcExternalBiz {
             dataResp.setData(vcAddPTCTrustRootResp);
             dataResp.buildAPIExceptionField(e);
             return dataResp;
+        } catch (Exception e) {
+            dataResp.setErrorCode(ExceptionEnum.SYS_ERROR.getErrorCode());
+            dataResp.setMessage(ExceptionEnum.SYS_ERROR.getMessage());
+            vcAddPTCTrustRootResp.setStatus(false);
+            vcAddPTCTrustRootResp.setMessage("vcAddPTCTrustRoot failed");
+            dataResp.setData(vcAddPTCTrustRootResp);
+            dataResp.buildAPIExceptionField(new APIException(e));
+            return dataResp;
         }
         return dataResp;
     }
@@ -544,7 +562,7 @@ public class VcExternalBiz {
         try {
             // get owner's privateKey && issuerId
             ApiKeyDomain apiKeyDomain = apiKeyService.getApiKeyDomain(1);
-            String issuerPrivateKey = apiKeyDomain.getIssuerPrivateKey();
+            String issuerPrivateKey = ConfigTools.decrypt(decryptPublicKey, apiKeyDomain.getIssuerPrivateKey());
             String issuerId = new PrivateKeyManager(issuerPrivateKey).getEncAddress();
 
             /*// recover Relayer's cert from BIF PTCManagerContract by relayer cert's vcId in request body
@@ -687,6 +705,14 @@ public class VcExternalBiz {
             vcAddTpBtaResp.setMessage("vcAddTPBTA failed");
             dataResp.setData(vcAddTpBtaResp);
             dataResp.buildAPIExceptionField(e);
+            return dataResp;
+        } catch (Exception e) {
+            dataResp.setErrorCode(ExceptionEnum.SYS_ERROR.getErrorCode());
+            dataResp.setMessage(ExceptionEnum.SYS_ERROR.getMessage());
+            vcAddTpBtaResp.setStatus(false);
+            vcAddTpBtaResp.setMessage("vcAddPTCTrustRoot failed");
+            dataResp.setData(vcAddTpBtaResp);
+            dataResp.buildAPIExceptionField(new APIException(e));
             return dataResp;
         }
         return dataResp;
