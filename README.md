@@ -219,7 +219,7 @@ mysql> source init.sql;
 
 **第一步：服务初始化**
 
-服务成功启动之后，调用`/internal/vc/init`接口，完成服务初始化操作，生成根证书和API-Key。根证书由超级节点签发，为发证方进行可信背书；API-Key用于生成access token，辅助发证方进行权限校验以调用审核接口。
+服务成功启动之后，调用`/auth/init`接口，完成服务初始化操作，生成API服务管理员API-Key。根证书由超级节点签发，为发证方进行可信背书；API-Key用于生成access token，辅助发证方进行权限校验以调用审核接口。
 
 ```bash
 curl -X POST http://localhost:8114/internal/vc/init
