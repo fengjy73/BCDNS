@@ -685,6 +685,7 @@ public class VcExternalBiz {
                     bifContractInvokeRequest.setContractAddress(tpbtaContractAddress);
                     vcAddTpBtaResp = bifAddThirdPartyBlockchainTrustAnchor(bifContractService, bifContractInvokeRequest, tpbtaReq.getCrossChainLane().getLaneKey(), tpbtaReq.getTpbtaVersion(), tpbta);
                     dataResp.setData(vcAddTpBtaResp);
+                    dataResp.buildSuccessField();
                 }
             } else {
                 logger.error(StrUtil.format("failed to query Relayer Certificate by vcId to BIF chain ( err_code: {}, err_msg: {} )",
@@ -742,6 +743,7 @@ public class VcExternalBiz {
                 )
         );
         bifContractInvokeRequest.setBIFAmount(0L);
+        bifContractInvokeRequest.setGasPrice(1L);
         BIFContractInvokeResponse response = bifContractService.contractInvoke(bifContractInvokeRequest);
         if (0 != response.getErrorCode()) {
             throw new APIException(
