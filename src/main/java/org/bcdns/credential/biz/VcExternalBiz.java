@@ -25,7 +25,6 @@ import com.alipay.antchain.bridge.commons.bcdns.CrossChainCertificateFactory;
 import com.alipay.antchain.bridge.commons.bcdns.CrossChainCertificateTypeEnum;
 import com.alipay.antchain.bridge.commons.bcdns.utils.CrossChainCertificateUtil;
 import com.alipay.antchain.bridge.commons.core.base.ObjectIdentity;
-import com.alipay.antchain.bridge.commons.core.base.ObjectIdentityType;
 import com.alipay.antchain.bridge.commons.core.base.X509PubkeyInfoObjectIdentity;
 import com.alipay.antchain.bridge.commons.core.ptc.PTCTrustRoot;
 import com.alipay.antchain.bridge.commons.core.ptc.ThirdPartyBlockchainTrustAnchor;
@@ -284,8 +283,7 @@ public class VcExternalBiz {
         domain.setStatus(StatusEnum.APPLYING.getCode());
         domain.setPublicKey(vcApplyReqDto.getPublicKey());
         domain.setOwnerPublicKey(Base64.encode(ownerPublicKey.getEncoded()));
-        PublicKeyManager publicKeyManager = new PublicKeyManager(authorizedPublicKey);
-        ObjectIdentity objectIdentity = new ObjectIdentity(ObjectIdentityType.BID, publicKeyManager.getEncAddress().getBytes());
+        ObjectIdentity objectIdentity = new X509PubkeyInfoObjectIdentity(Base64.decode(authorizedPublicKey));
         domain.setUserId(objectIdentity.encode());
         domain.setCreateTime(DateUtil.currentSeconds());
         domain.setIsDownload(0);
