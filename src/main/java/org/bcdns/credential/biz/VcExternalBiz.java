@@ -14,6 +14,7 @@ import cn.bif.model.response.BIFContractInvokeResponse;
 import cn.bif.module.contract.BIFContractService;
 import cn.bif.module.encryption.key.PrivateKeyManager;
 import cn.bif.module.encryption.key.PublicKeyManager;
+import cn.bif.utils.base.Base58;
 import cn.hutool.core.codec.Base64;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.HexUtil;
@@ -140,71 +141,78 @@ public class VcExternalBiz {
     private static final String ADD_TPBTA_BY_LANE
             = "{\"function\":\"addTPBTA(string,uint16,bytes)\",\"args\":\"'{}',{},'{}'\"}";
 
-    private void isBackbone(String publicKey) {
-        PublicKeyManager publicKeyManager = new PublicKeyManager(publicKey);
-        BIFSDK sdk = BIFSDK.getInstance(sdkUrl);
-        String input = StrUtil.format("{\"method\":\"getnodeinfo\",\"params\":{\"address\":\"{}\"}}", publicKeyManager.getEncAddress());
-        BIFContractCallRequest bifContractCallRequest = new BIFContractCallRequest();
-        bifContractCallRequest.setInput(input);
-        bifContractCallRequest.setContractAddress(dposContractAddress);
-        BIFContractService contractService = sdk.getBIFContractService();
-        BIFContractCallResponse callResp = contractService.contractQuery(bifContractCallRequest);
-        if (ExceptionEnum.SUCCESS.getErrorCode().equals(callResp.getErrorCode())) {
-            if (((HashMap<String, Object>) callResp.getResult().getQueryRets().get(0)).containsKey("result")) {
-                JSONObject result = JSONObject.parseObject(JSONObject.toJSONString(callResp.getResult().getQueryRets().get(0))).getJSONObject("result");
-                String roleType = result.getJSONObject("data").getJSONObject("nodeInfo").getString("roleType");
-                if (!"backbone".equals(roleType)) {
-                    throw new APIException(ExceptionEnum.PARAME_ERROR);
+    private void isBackbone(String publicKey) throws Exception {
+        try {
+            PublicKeyManager publicKeyManager = new PublicKeyManager(publicKey);
+            BIFSDK sdk = BIFSDK.getInstance(sdkUrl);
+            String input = StrUtil.format("{\"method\":\"getnodeinfo\",\"params\":{\"address\":\"{}\"}}", publicKeyManager.getEncAddress());
+            BIFContractCallRequest bifContractCallRequest = new BIFContractCallRequest();
+            bifContractCallRequest.setInput(input);
+            bifContractCallRequest.setContractAddress(dposContractAddress);
+            BIFContractService contractService = sdk.getBIFContractService();
+            BIFContractCallResponse callResp = contractService.contractQuery(bifContractCallRequest);
+            if (ExceptionEnum.SUCCESS.getErrorCode().equals(callResp.getErrorCode())) {
+                if (((HashMap<String, Object>) callResp.getResult().getQueryRets().get(0)).containsKey("result")) {
+                    JSONObject result = JSONObject.parseObject(JSONObject.toJSONString(callResp.getResult().getQueryRets().get(0))).getJSONObject("result");
+                    String roleType = result.getJSONObject("data").getJSONObject("nodeInfo").getString("roleType");
+                    if (!"backbone".equals(roleType)) {
+                        throw new APIException(ExceptionEnum.SYS_ERROR, "check is not backbone node");
+                    }
+                } else {
+                    throw new APIException(ExceptionEnum.SYS_ERROR, "failed to query dpos node information");
                 }
             } else {
-                throw new APIException(ExceptionEnum.PARAME_ERROR);
+                throw new APIException(ExceptionEnum.SYS_ERROR, "failed to query dpos contract");
             }
-        } else {
-            throw new APIException(ExceptionEnum.PARAME_ERROR);
+        } catch (Exception e) {
+            throw new APIException(String.format("failed to check backbone node: %s", publicKey), e);
         }
     }
 
-    private void isSuperNode(String publicKey) {
-        PublicKeyManager publicKeyManager = new PublicKeyManager(publicKey);
-        BIFSDK sdk = BIFSDK.getInstance(sdkUrl);
-        String input = StrUtil.format("{\"method\":\"getnodeinfo\",\"params\":{\"address\":\"{}\"}}", publicKeyManager.getEncAddress());
-        BIFContractCallRequest bifContractCallRequest = new BIFContractCallRequest();
-        bifContractCallRequest.setInput(input);
-        bifContractCallRequest.setContractAddress(dposContractAddress);
-        BIFContractService contractService = sdk.getBIFContractService();
-        BIFContractCallResponse callResp = contractService.contractQuery(bifContractCallRequest);
-
-        if (ExceptionEnum.SUCCESS.getErrorCode().equals(callResp.getErrorCode())) {
-            if (((HashMap<String, Object>) callResp.getResult().getQueryRets().get(0)).containsKey("result")) {
-                JSONObject result = JSONObject.parseObject(JSONObject.toJSONString(callResp.getResult().getQueryRets().get(0))).getJSONObject("result");
-                String roleType = result.getJSONObject("data").getJSONObject("nodeInfo").getString("roleType");
-                if (!"super".equals(roleType) && !"validator".equals(roleType)) {
-                    throw new APIException(ExceptionEnum.PARAME_ERROR);
+    private void isSuperNode(String publicKey) throws Exception {
+        try {
+            PublicKeyManager publicKeyManager = new PublicKeyManager(publicKey);
+            BIFSDK sdk = BIFSDK.getInstance(sdkUrl);
+            String input = StrUtil.format("{\"method\":\"getnodeinfo\",\"params\":{\"address\":\"{}\"}}", publicKeyManager.getEncAddress());
+            BIFContractCallRequest bifContractCallRequest = new BIFContractCallRequest();
+            bifContractCallRequest.setInput(input);
+            bifContractCallRequest.setContractAddress(dposContractAddress);
+            BIFContractService contractService = sdk.getBIFContractService();
+            BIFContractCallResponse callResp = contractService.contractQuery(bifContractCallRequest);
+            if (ExceptionEnum.SUCCESS.getErrorCode().equals(callResp.getErrorCode())) {
+                if (((HashMap<String, Object>) callResp.getResult().getQueryRets().get(0)).containsKey("result")) {
+                    JSONObject result = JSONObject.parseObject(JSONObject.toJSONString(callResp.getResult().getQueryRets().get(0))).getJSONObject("result");
+                    String roleType = result.getJSONObject("data").getJSONObject("nodeInfo").getString("roleType");
+                    if (!"super".equals(roleType) && !"validator".equals(roleType)) {
+                        throw new APIException(ExceptionEnum.SYS_ERROR, "check is not super node");
+                    }
+                } else {
+                    throw new APIException(ExceptionEnum.SYS_ERROR, "failed to query dpos node information");
                 }
             } else {
-                throw new APIException(ExceptionEnum.PARAME_ERROR);
+                throw new APIException(ExceptionEnum.SYS_ERROR, "failed to query dpos contract");
             }
-        } else {
-            throw new APIException(ExceptionEnum.PARAME_ERROR);
+        } catch (Exception e) {
+            throw new APIException(String.format("failed to check super node: %s", publicKey), e);
         }
     }
 
-    private void isRelayer(String publicKey) {
+    private void isRelayer(String publicKey) throws Exception {
         ObjectIdentity objectIdentity = new X509PubkeyInfoObjectIdentity(Base64.decode(publicKey));
         VcAuditDomain vcAuditDomain = vcAuditService.getVcIdByVcOwner(objectIdentity.encode());
         if (Tools.isNull(vcAuditDomain)) {
-            throw new APIException(ExceptionEnum.CREDENTIAL_NOT_EXIST);
+            throw new APIException(ExceptionEnum.SYS_ERROR, "check relay error, credential is not exist");
         }
 
         VcRecordDomain vcRecordDomain = vcRecordService.getVcRecord4VcId(vcAuditDomain.getVcId());
         if (Tools.isNull(vcRecordDomain)) {
-            throw new APIException(ExceptionEnum.CREDENTIAL_NOT_EXIST);
+            throw new APIException(ExceptionEnum.SYS_ERROR, "check relay error, credential is not exist");
         }
         if (!vcRecordDomain.getCredentialType().equals(3)) {
-            throw new APIException(ExceptionEnum.CREDENTIAL_NOT_EXIST);
+            throw new APIException(ExceptionEnum.SYS_ERROR, "check relay error, credential type is not relay");
         }
         if (vcRecordDomain.getStatus().equals(StatusEnum.REVOKE.getCode())) {
-            throw new APIException(ExceptionEnum.CREDENTIAL_IS_REVOKE);
+            throw new APIException(ExceptionEnum.SYS_ERROR, "check relay error, credential has revoked");
         }
     }
 
@@ -229,6 +237,7 @@ public class VcExternalBiz {
         if (!verifyResult) {
             throw new APIException(ExceptionEnum.SIGN_ERROR);
         }
+
         if (runType != 0) {
             Integer vcType = vcApplyReqDto.getCredentialType();
             switch (CrossChainCertificateTypeEnum.valueOf(vcType.byteValue())) {
@@ -242,10 +251,7 @@ public class VcExternalBiz {
                     isRelayer(publicKey);
                     break;
                 default:
-                    throw new AntChainBridgeCommonsException(
-                            CommonsErrorCodeEnum.BCDNS_UNSUPPORTED_CA_TYPE,
-                            "failed to parse type from subject class " + vcType
-                    );
+                    break;
             }
         }
     }
@@ -267,8 +273,8 @@ public class VcExternalBiz {
         } catch (APIException e) {
             dataResp.buildAPIExceptionField(e);
         } catch (Exception e) {
-            logger.error("申请凭证接口异常", e);
-            dataResp.buildSysExceptionField();
+            logger.error("vc apply error: {}", e.getMessage());
+            dataResp.buildCommonField(ExceptionEnum.SYS_ERROR.getErrorCode(), e.getMessage());
         }
         return dataResp;
     }
@@ -310,8 +316,8 @@ public class VcExternalBiz {
         } catch (APIException e) {
             dataResp.buildAPIExceptionField(e);
         } catch (Exception e) {
-            logger.error("query vcStatus error:{}", e);
-            dataResp.buildSysExceptionField();
+            logger.error("query vc apply error: {}", e.getMessage());
+            dataResp.buildCommonField(ExceptionEnum.SYS_ERROR.getErrorCode(), e.getMessage());
         }
         return dataResp;
     }
@@ -334,8 +340,8 @@ public class VcExternalBiz {
         } catch (APIException e) {
             dataResp.buildAPIExceptionField(e);
         } catch (Exception e) {
-            logger.error("query vcStatus error:{}", e);
-            dataResp.buildSysExceptionField();
+            logger.error("query vc status error: {}", e.getMessage());
+            dataResp.buildCommonField(ExceptionEnum.SYS_ERROR.getErrorCode(), e.getMessage());
         }
         return dataResp;
     }
@@ -365,7 +371,7 @@ public class VcExternalBiz {
         } catch (APIException e) {
             dataResp.buildAPIExceptionField(e);
         } catch (Exception e) {
-            logger.error("query vcStatus error:{}", e);
+            logger.error("download vc error: {}", e.getMessage());
             dataResp.buildSysExceptionField();
         } finally {
             distributedLock.releaseLock(lockKey, vcId);
@@ -381,13 +387,10 @@ public class VcExternalBiz {
             vcRootRespDto.setBcdnsRootCredential(vcRootDomain.getVcRoot());
             dataResp.setData(vcRootRespDto);
             dataResp.buildSuccessField();
-        } catch (APIException e) {
-            dataResp.buildAPIExceptionField(e);
-        } catch (Exception e) {
-            logger.error("get root vc", e);
-            dataResp.buildSysExceptionField();
+        }  catch (Exception e) {
+            logger.error("get root vcerror: {}", e.getMessage());
+            dataResp.buildCommonField(ExceptionEnum.SYS_ERROR.getErrorCode(), e.getMessage());
         }
-
         return dataResp;
     }
 

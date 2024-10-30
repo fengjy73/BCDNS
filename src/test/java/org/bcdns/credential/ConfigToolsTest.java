@@ -1,24 +1,22 @@
 package org.bcdns.credential;
 
+import com.alibaba.druid.filter.config.ConfigTools;
 import org.junit.Test;
-import static com.alibaba.druid.filter.config.ConfigTools.encrypt;
-import static com.alibaba.druid.filter.config.ConfigTools.genKeyPair;
+
+import static com.alibaba.druid.filter.config.ConfigTools.*;
 
 public class ConfigToolsTest {
     @Test
-    public void testPassword() throws Exception {
-        String password = "Mychain123!@#";
+    public void testCreateKeyPair() throws Exception {
         String[] arr = genKeyPair(512);
-        System.out.println("password:" + password);
         System.out.println("privateKey:" + arr[0]);
         System.out.println("publicKey:" + arr[1]);
-        System.out.println("password:" + encrypt(arr[0], password));
     }
 
     @Test
-    public void testPassword1() throws Exception {
-        String password = "priSPKfJPS11hGWCnHHzgwfVyL4RbMKQGqfLpX5JZYuE2bDbbx";
-        String privateKey = "MIIBUwIBADANBgkqhkiG9w0BAQEFAASCAT0wggE5AgEAAkEAg0GtzkzxbbvRmWRiIplqXR29lp2CrxphEFRmMH0RQZHwUSkeBasTclZlwq5NQ7zAvv6FMt8euliche+aHAlKfQIDAQABAkAfaee0GTwq/CmU4a6PA1KuiICofHgbel/CrcBrWHN50p++b3D9mf1bAPsQL9HUgYSAdbWsZRktM+8fZlO/m3YtAiEA2YVXknSVfOmqwvABwVnvSHF26ucRjw/fPztrKvKuwe8CIQCaecSpI+lK6tJIqUTKpav2TcmSQ6mQN0a/Jfdujwg2UwIgBRMoVOFlb3GgK0YgNFudyonjJV3Yuga7xaTkPi9FRn8CID5PyCiCN+TkfBabUQh9c7RTBHBfotJtubf5VKngQGvJAiBitrbI7gp9u+qSOyACHh6zFZP5BCyfJGKEug5JzGQeMg==";
+    public void testEncrypt() throws Exception {
+        String password = "yuanchao";
+        String privateKey = "MIIBVQIBADANBgkqhkiG9w0BAQEFAASCAT8wggE7AgEAAkEAunLtL3wVMCmLCj9TrMEkAYLIYu26pk2FGYkKg1wKnufxeToMOGgFa3B44b2/uE+ojlg3/q07maQW36cPEf6SRwIDAQABAkBoBb63A29+026zZOl2NLu17BWIvEGqjw13VbH739o9FQ5R20jI10Ypq83Gsg7eLkTXTlkSQ4W1UNJZCM9//xQBAiEA7VKb/g6wve1WYeDbsWcCHbFV06mBtvwCHqNWzQyDvYECIQDJH1pKg6t3xIzqw9TwNbWXJZPoJrRTdbwhHGSWFr3DxwIhAILYSgMvzEha44aBd/7+YQ9H558UVN0zYmPMAJ566OOBAiBFR26Dwm1bOTJNYB3GjMm7ge88BbESGrkuMqiXZsgBWwIhALYOVdvMW+BWLC+9WMwz4TwnpmJcxSAIPGP3ijX2Et9e";
         System.out.println("password:" + encrypt(privateKey, password));
     }
 }
