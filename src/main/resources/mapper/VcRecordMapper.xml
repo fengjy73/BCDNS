@@ -3,14 +3,14 @@
 <mapper namespace="org.bcdns.credential.mapper.VcRecordMapper">
 
     <sql id="vcRecordItem">
-        id,apply_no applyNo,content,credential_type credentialType,status,vc_id vcId,vc_data vcData,public_key publicKey,user_id userId,create_time createTime,update_time updateTime,is_download isDownload
+        id,apply_no applyNo,content,credential_type credentialType,status,vc_id vcId,vc_data vcData,public_key publicKey,owner_public_key ownerPublicKey,user_id userId,create_time createTime,update_time updateTime,is_download isDownload
     </sql>
 
     <insert id="insert" parameterType="org.bcdns.credential.model.VcRecordDomain">
         insert into
-            vc_record(id,apply_no,content,credential_type,status,vc_id,vc_data,public_key,user_id,create_time,update_time,is_download)
+            vc_record(id,apply_no,content,credential_type,status,vc_id,vc_data,public_key,owner_public_key,user_id,create_time,update_time,is_download)
         values
-            (null,#{applyNo},#{content},#{credentialType},#{status},#{vcId},#{vcData},#{publicKey},#{userId},#{createTime},0,#{isDownload})
+            (null,#{applyNo},#{content},#{credentialType},#{status},#{vcId},#{vcData},#{publicKey},#{ownerPublicKey},#{userId},#{createTime},0,#{isDownload})
     </insert>
 
     <select id="getVcRecord" parameterType="string" resultType="org.bcdns.credential.model.VcRecordDomain">
@@ -38,6 +38,15 @@
         vc_record
         where
         user_id=#{userId}
+    </select>
+
+    <select id="getVcRecord4OwnerPubKey" resultType="org.bcdns.credential.model.VcRecordDomain">
+        select
+        <include refid="vcRecordItem" />
+        from
+        vc_record
+        where
+        owner_public_key=#{ownerPublicKey}
     </select>
 
     <update id="updateAuditPassStatus" parameterType="org.bcdns.credential.model.VcRecordDomain">

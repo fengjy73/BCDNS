@@ -22,7 +22,7 @@ public class VcInternalController {
     private VcInternalBiz vcInternalBiz;
 
     @PostMapping(value = "/init")
-    public DataResp<ApiKeyRespDto> init() {
+    public DataResp<ApiKeyRespDto> init() throws Exception {
         log.info("request url:{}","/vc/init");
         return vcInternalBiz.init();
     }

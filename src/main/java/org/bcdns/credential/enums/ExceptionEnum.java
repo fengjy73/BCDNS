@@ -38,6 +38,25 @@ public enum ExceptionEnum {
 
     FAILED_TO_DECRYPT_PRIVATE(100114, "解析密文私钥失败"),
 
+    PTCTRUSTROOT_SIGN_VERIFY_ERROR(100114, "ptctrustroot sign verify error"),
+
+    REGISTER_PTCTRUSTROOT_ERROR(100115, "register ptctrustroot error"),
+
+    REGISTER_TPBTA_ERROR(100116, "register ptba error"),
+
+    TPBTA_SIGN_VERIFY_ERROR(100117, "tpbta verify error"),
+
+    TPBTA_BELONG_TYPE_ERROR(100118, "tpbta belong type error"),
+
+    KEYTYPE_ERROR(100119, "keytype error"),
+
+    CONTRACT_QUERY_ERROR(100120, "contract query error"),
+
+    QUERY_RESP_PARAM_ERROR(100121, "query param error"),
+
+    CONTRACT_INVOKE_ERROR(100122, "contract invoke error"),
+
+    TPBTA_LEVEL_ERROR(100123, "tpbta level error"),
     ;
     private final Integer errorCode;
     private final String message;
