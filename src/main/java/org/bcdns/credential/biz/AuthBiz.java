@@ -59,8 +59,8 @@ public class AuthBiz {
         }catch (APIException e) {
             dataResp.buildAPIExceptionField(e);
         }catch (Exception e){
-            logger.error("get access token error:{}.", e);
-            dataResp.buildSysExceptionField();
+            logger.error("get access token error: {}", e.getMessage());
+            dataResp.buildCommonField(ExceptionEnum.SYS_ERROR.getErrorCode(), e.getMessage());
         }
         return dataResp;
     }

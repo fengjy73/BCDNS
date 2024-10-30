@@ -1,5 +1,5 @@
-create database if not exists credential;
-use credential;
+create database if not exists bcdns;
+use bcdns;
 
 drop table if exists vc_record;
 CREATE TABLE `vc_record` (
@@ -21,7 +21,7 @@ CREATE TABLE `vc_record` (
 drop table if exists vc_root;
 CREATE TABLE `vc_root` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `vc_root` LONGBLOB DEFAULT NULL COMMENT '根证书',
+  `vc_root` LONGBLOB DEFAULT NULL COMMENT '根证书'
   PRIMARY KEY (`id`) USING BTREE
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_bin ROW_FORMAT=COMPACT COMMENT='根证书记录表';
 

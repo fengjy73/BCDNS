@@ -11,6 +11,6 @@ import static org.bcdns.credential.common.constant.MessageConstant.*;
 @Data
 public class QueryStatusReqDto {
     @NotBlank(message = DESC_VALID_NULL)
-    @Length(min = 1, max = 64, message = DESC_VALID_STRING)
+    @Length(min = 32, max = 32, message = DESC_VALID_STRING)
     private String applyNo;
 }

@@ -24,7 +24,7 @@ public class VcExternalController {
     private VcExternalBiz vcExternalBiz;
 
     @PostMapping(value = "/apply")
-    public DataResp<VcApplyRespDto> vcApply(@Valid @RequestBody VcApplyReqDto vcApplyReqDto){
+    public DataResp<VcApplyRespDto> vcApply(@Valid @RequestBody VcApplyReqDto vcApplyReqDto) {
         log.info("request url:{}******params:{}", "/vc/apply", JSONObject.toJSON(vcApplyReqDto));
         return vcExternalBiz.vcApply(vcApplyReqDto);
     }

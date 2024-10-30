@@ -1,6 +1,5 @@
-// SPDX-License-Identifier: MIT
-
-pragma solidity ^0.4.26;
+// SPDX-License-Identifier: Apache-2.0
+pragma solidity ^0.8.0;
 
 /**
  * @dev Contract module which provides a basic access control mechanism, where
@@ -31,7 +30,7 @@ contract Ownable {
     /**
      * @dev Returns the address of the current owner.
      */
-    function owner() public returns (address) {
+    function owner() public view returns (address) {
         return _owner;
     }
 

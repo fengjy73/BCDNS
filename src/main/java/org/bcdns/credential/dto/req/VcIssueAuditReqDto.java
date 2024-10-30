@@ -12,7 +12,7 @@ import static org.bcdns.credential.common.constant.MessageConstant.*;
 @Data
 public class VcIssueAuditReqDto {
     @NotBlank(message = DESC_VALID_NULL)
-    @Length(min = 1, max = 64, message = DESC_VALID_STRING)
+    @Length(min = 32, max = 32, message = DESC_VALID_STRING)
     private String applyNo;
 
     @NotNull(message = DESC_VALID_NULL)
@@ -20,6 +20,6 @@ public class VcIssueAuditReqDto {
     private Integer status;
 
     @NotBlank(message = DESC_VALID_NULL)
-    @Length(min = 1, max = 512, message = DESC_VALID_STRING)
+    @Length(max = 1024, message = DESC_VALID_STRING_LENGTH)
     private String reason;
 }

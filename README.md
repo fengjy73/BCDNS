@@ -14,9 +14,9 @@
 </div>
 
 # 介绍
-区块链域名系统（BlockChain Domain Name System, BCDNS），是按照[IEEE 3205](https://antchainbridge.oss-cn-shanghai.aliyuncs.com/antchainbridge/document/ieee/p3205/IEEE_3205-2023_Final.pdf)跨链标准中的身份协议实现的证书颁发服务，负责给跨链系统中的证明转化组件（PTC）、中继（Relayer）、和区块链域名赋予唯一性标识和可信证书，以实现跨链互操作过程中的身份认证。
+区块链域名系统（BlockChain Domain Name System, BCDNS），是按照[IEEE 3205](https://antchainbridge.oss-cn-shanghai.aliyuncs.com/antchainbridge/document/ieee/p3205/IEEE_3205-2023_Final.pdf)跨链标准中的身份协议实现的证书颁发服务，负责给跨链系统中的证明转化组件（PTC）、中继服务器（Relayer）、和区块链域名赋予唯一性标识和可信证书，以实现跨链互操作过程中的身份认证。
 
-BCDNS将功能实现分为两部分，分别为凭证颁发和凭证上链，PTC、Relayer和区块链域名主体等在发起证书申请后，由发证方负责审核并颁发证书，同时证书信息会由发证方上传至星火链证书管理合约（PTC管理合约、Relayer管理合约、域名管理合约）中记录。
+BCDNS将功能实现分为两部分，分别为凭证颁发和凭证上链，PTC、Relayer和区块链域名主体等在发起证书申请后，由发证方负责审核并颁发证书，同时证书信息会由发证方上传至星火主链证书管理合约（PTC管理合约、Relayer管理合约、域名管理合约）中进行记录保存。
 
 # 架构
 
@@ -129,30 +129,22 @@ tree .
     "private_key" : "priSPKkeE5bJuRdsbBeYRMHR6vF6M6PJV97jbwAHomVQodn3x3"
     ```
 
+    
+
   - 测试网星火令可以通过[星火插件钱包](https://bif-doc.readthedocs.io/zh-cn/1.0.0/tools/wallet.html)申请**星火个人数字凭证**（注意在钱包右上角，将连接的网络切换为星火体验网，即测试网），这里需要人工审核，待审核通过后（一周会审核1到2次，也可用通过加入[星火开发者社区](https://bif-doc.readthedocs.io/zh-cn/2.0.0/other/开发者社区.html)，请求快速审核），即可获取`100`星火令。
 
 - 合约部署
 
-  然后使用[星火合约编辑器](https://remix.learnblockchain.cn/#lang=zh&optimize=false&runs=200&evmVersion=null&version=soljson-v0.8.22+commit.4fc1097e.js)编译、部署合约到星火测试网上。其中部署过程中需要用到第一步用于星火令账户的私钥，可以在插件钱包中导出。星火合约编辑器使用说明请参考[教程](https://git.xinghuo.space/xinghuo-open-source/DLT/bcdns/-/blob/master/src/main/resources/contract/Remix%E5%90%88%E7%BA%A6IDE%E6%98%9F%E7%81%AB%E6%8F%92%E4%BB%B6.pdf?ref_type=heads)。
+  然后使用[星火合约编辑器](https://remix.learnblockchain.cn/#lang=zh&optimize=false&runs=200&evmVersion=null&version=soljson-v0.8.22+commit.4fc1097e.js)编译、部署合约到星火测试网上。其中部署过程中需要用到第一步用于星火令账户的私钥，可以在插件钱包中导出。星火合约编辑器使用说明请参考[教程](https://git.xinghuo.space/xinghuo-open-source/DLT/bcdns/-/blob/master/src/main/resources/contract/Remix合约IDE星火插件.pdf?ref_type=heads)。
 
 ## 修改配置
 
 配置文件在`conf`目录下，开发者使用`application-test.properties`进行配置的修改。
 
-- 需要修改MySQL、Redis的用户名和密码，源码test目录下的辅助工具`ConfigToolsTest`可以帮助加密密码，并生成解密公钥；
-
-- 同时修改三个合约地址，使用上一节部署的三本合约；
+- 需要修改MySQL、Redis的用户名和密码，密码使用public-key解密
+- 同时修改三个合约地址，使用上一节部署的三个合约；
 - 修改超级节点私钥，对于体验模式，没有对超级节点进行校验，可随意填写一个账户私钥；
-- 修改发证方的发证方的私钥，需要填写部署合约时用到的账户地址的私钥；
-
-`ConfigToolsTest`使用返回结果示例：
-
-```
-password:123
-privateKey:MIIBVQIBADANBgkqhkiG9w0BAQEFAASCAT8wggE7AgEAAkEAwTVOAt46/utkxf0tbpAtD9GpOlurccJeKvde79OVmJVAXr/GDECwu39fxGEGmpNdSjRM5H++czqtoC+mdi8Y9wIDAQABAkAs4y9+pxbZxuKgxRNbDpAJjtJcRpPsWBX8sYATA/tLeWohl7q/I6IY27t/PLKPS9zmfH+WbMOk0O0jE0L4yuLRAiEA4oRWlliMvm4PffwEKJOyitwNu9S0x/+GV7HOSwnM25sCIQDaWxpCP9Gm1f92QweX6lJxeokO1/dzHPi7r33fK/2z1QIhANd4dXk8sF0xCrGX+kiy/oKSgsnqszEQQzXGIGtG3kUDAiEAgSTKtg4ayErfKanhTtc25YjskQvofXvQHOlhT+IrzfUCIA39R39d0/ogujRVQ/B4s2gIunvUzERcyDoNrK2sArWC
-publicKey:MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAME1TgLeOv7rZMX9LW6QLQ/RqTpbq3HCXir3Xu/TlZiVQF6/xgxAsLt/X8RhBpqTXUo0TOR/vnM6raAvpnYvGPcCAwEAAQ==
-password:iq7fRgyw261DckmzRlnWV9QzrNVjtpDV0GwkpogoB60ctO2HINf47qWq599yTb+oNkHkbTRzpGvk6zqC6Klyxg==
-```
+- 修改发证方的私钥，需要填写部署合约时用到的账户的私钥；
 
 配置文件示例：
 
@@ -163,7 +155,7 @@ logging.level.root=info
 spring.datasource.url=jdbc:mysql://127.0.0.1:3306/bcdns?useUnicode=true&characterEncoding=UTF-8&serverTimezone=GMT%2b8&useSSL=false //mysql配置
 spring.datasource.username=xxx //mysql用户名
 spring.datasource.druid.filter.config.enabled=true
-public-key=xxx //非对称加密公钥，用于解密mysql密码，在源码src/test/java/org/bcdns/credential文件夹中有辅助工具ConfigToolsTest可以帮助加密mysql密码并生成解密公钥
+public-key=xxx //非对称加密公钥，用于解密mysql密码
 spring.datasource.druid.connection-properties=config.decrypt=true;config.decrypt.key=${public-key}
 spring.datasource.password=xxx //加密后的mysql密码
 spring.datasource.druid.initial-size=1
@@ -177,17 +169,15 @@ spring.mvc.servlet.load-on-startup=1
 redis.host=127.0.0.1 
 redis.port=6379
 redis.password=xxx //加密后的redis密码
-redis.publicKey=xxx //非对称加密公钥，用于解密redis密码，在test文件夹中有辅助工具ConfigToolsTest可以帮助加密redis密码并生成解密公钥
+redis.publicKey=xxx //非对称加密公钥，用于解密redis密码
 
 dpos.contract.address=did:bid:efRH1Lbsuqwc6jRw3hK4H5Hp2RhHnryS 
-ptc.contract.address=xxx //完成合约部署后得到的PTC合约地址
-relay.contract.address=xxx //完成合约部署后得到的relayer合约地址
-domain-name.contract.address=xxx //完成合约部署后得到的r域名合约地址
 sdk.url=http://test.bifcore.bitfactory.cn 
-object-identity.supernode.bid-private-key=xxx //星火链测试网超级节点私钥，体验模式可以随意填写一个账户私钥
-object-identity.issuer.bid-private-key=xxx //部署合约时使用的账号私钥，如果使用了我们提供的私钥，拷贝过来即可，如果自行生成的私钥，需要从星火插件钱包导出
+object-identity.supernode.bid-private-key=xxx //星火链测试网超级节点私钥（采用加密形式），体验模式可以随意填写一个账户私钥
+object-identity.issuer.bid-private-key=xxx //发证方私钥（采用加密形式），需要拥有星火令
+object-identity.publicKey=xxx //非对称加密公钥，用于解密超级节点私钥和发证方私钥
 
-run.type=0 //BCDNS服务运行模式，0为开发者体验模式，1为实际生产模式；生产模式和体验模式区别在于对于凭证申请的权限校验，实际生产模式，PTC的申请规定只能容许骨干节点有资格，Relayer的申请规定只能容许超级节点有资格，而体验模式为了简化流程，省去权限校验部分。
+run.type=0 //BCDNS服务运行模式，0为开发者体验模式，1为实际生产模式；生产模式和体验模式区别在于对于凭证申请的权限校验，实际生产模式，PTC的申请只有骨干节点有资格，Relayer的申请只有超级节点有资格，而体验模式为了简化流程，省去权限校验部分。
 ```
 
 ## 运行
@@ -219,7 +209,7 @@ mysql> source init.sql;
 
 **第一步：服务初始化**
 
-服务成功启动之后，调用`/auth/init`接口，完成服务初始化操作，生成API服务管理员API-Key。根证书由超级节点签发，为发证方进行可信背书；API-Key用于生成access token，辅助发证方进行权限校验以调用审核接口。
+服务成功启动之后，调用`/vc/init`接口，完成服务初始化操作，生成BCDNS根证书，部署ptc管理合约、relayer管理合约和区块链域名管理合约，同时生成BCDNS管理员API-Key。BCDNS根证书由超级节点签发，为发证方进行可信背书；API-Key用于生成access token，辅助发证方进行权限校验以调用审核接口。
 
 ```bash
 curl -X POST http://localhost:8114/internal/vc/init
@@ -229,9 +219,9 @@ curl -X POST http://localhost:8114/internal/vc/init
 
 ```json
 {
-    "apiKey":"xq92Jai...zzQ",
-    "apiSecret":"8e877a4cf...98ae944bd",
-    "issuerId":"did:bid:efMdkGyKfmizXNpXt3SEvJF8g57mDCpC"
+     "apiKey": "xveVZbnefonQuQ8e",
+     "apiSecret": "df66d34d91bbcc77f9ade4fd825edd1e26aca893",
+     "issuerId": "did:bid:efexmw5GLPUU92ECpZMxpBPyCeZJhCDW",
 }
 ```
 
@@ -258,14 +248,7 @@ curl -H "Content-Type: application/json" -X POST -d '{"apiKey":"you_apiKey","api
 
 **第三步：申请PTC证书**
 
-调用`/external/vc/apply`接口，输入参数详情可查看`src/docs/http-api接口`word文档说明，`test/java/org/bcdns/credential/ApplyTest`的`testPTCApply`可以辅助生成PTC证书申请参数，直接`Run或者Debug`该函数即可。例如：
-
-```plain
-content:[0, 0, -127, 1, 0, 0, 0, 0, ..., 57, 101, 34, 125, 93, 125]
-credentialType:2
-publicKey:b0656617148...8b273f9c704
-sign:[-55, -50, 17, 21, ..., 88, -113, 53, 62, 12]
-```
+参数的构建可以使用`src/main/resources/tool `目录下的小工具。
 
 将上述得到的参数填入下面curl对应的地方。`content`使用上述返回content的byte数组即可，`credentialType`使用上述返回的credentialType即可，`publicKey`使用上面的Hex字符串，`sign`填入上面的byte数组。
 
@@ -351,6 +334,26 @@ curl -H "Content-Type: application/json" -X POST -d '{"credentialId":"you_creden
 ```
 
 Relayer证书和区块链域名证书的申请和审核与PTC证书一样，只需重复执行步骤三、四、五、六即可。
+
+**第七步：下载BCDNS根证书**
+
+调用`/external/vc/root`接口下载BCDNS根证书。
+
+```plain
+curl -X POST http://localhost:8114/external/vc/root
+```
+
+返回类似下面的结果，`message`显示成功，`bcdnsRootCredential`为证书的Base64格式。
+
+```json
+{
+    "errorCode": 0,
+    "message": "成功",
+    "data": {
+        "bcdnsRootCredential": "AAAUAgAAA......",
+    }
+}
+```
 
 # 社区治理
 

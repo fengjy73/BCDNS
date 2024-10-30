@@ -19,6 +19,7 @@ public class Resp implements Serializable {
     public void buildAPIExceptionField(APIException e) {
         buildCommonField(e.getErrorCode(), e.getErrorMessage());
     }
+    
     public void buildAntChainBridgeCommonsExceptionField(AntChainBridgeCommonsException e) {
         buildCommonField(Integer.parseInt(e.getCode()), e.getMessage());
     }
