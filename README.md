@@ -175,7 +175,7 @@ dpos.contract.address=did:bid:efRH1Lbsuqwc6jRw3hK4H5Hp2RhHnryS
 sdk.url=http://test.bifcore.bitfactory.cn 
 object-identity.supernode.bid-private-key=xxx //星火链测试网超级节点私钥（采用加密形式），体验模式可以随意填写一个账户私钥
 object-identity.issuer.bid-private-key=xxx //发证方私钥（采用加密形式），需要拥有星火令
-object-identity.publicKey=xxx //非对称加密公钥，用于解密超级节点私钥和发证方私钥
+issue.decrypt.public-key=xxx //非对称加密公钥，用于解密超级节点私钥和发证方私钥
 
 run.type=0 //BCDNS服务运行模式，0为开发者体验模式，1为实际生产模式；生产模式和体验模式区别在于对于凭证申请的权限校验，实际生产模式，PTC的申请只有骨干节点有资格，Relayer的申请只有超级节点有资格，而体验模式为了简化流程，省去权限校验部分。
 ```

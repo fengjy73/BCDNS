@@ -20,7 +20,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 
 import java.util.List;
 
-@ActiveProfiles("dev")
+@ActiveProfiles("test")
 @RunWith(SpringRunner.class)
 @Sql(scripts = {"classpath:init.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
 @Sql(scripts = {"classpath:drop.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
