@@ -1,8 +1,6 @@
 package org.bcdns.credential.biz;
 
 
-import java.io.IOException;
-import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -15,24 +13,15 @@ import cn.bif.common.JsonUtils;
 import cn.bif.exception.EncException;
 import cn.bif.model.crypto.KeyPairEntity;
 import cn.bif.model.request.BIFContractCreateRequest;
-import cn.bif.model.request.BIFContractGetAddressRequest;
 import cn.bif.model.request.BIFContractInvokeRequest;
-import cn.bif.model.request.BIFTransactionGetInfoRequest;
-import cn.bif.model.response.BIFContractCreateResponse;
-import cn.bif.model.response.BIFContractGetAddressResponse;
 import cn.bif.model.response.BIFContractInvokeResponse;
-import cn.bif.model.response.BIFTransactionGetInfoResponse;
 import cn.bif.module.encryption.key.PrivateKeyManager;
 import cn.bif.module.encryption.model.KeyType;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.HexUtil;
-import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.digest.SM3;
 import com.alibaba.druid.filter.config.ConfigTools;
-import com.alibaba.druid.filter.config.ConfigTools;
-import com.alipay.antchain.bridge.commons.bbc.syscontract.ContractStatusEnum;
-import com.alipay.antchain.bridge.commons.bbc.syscontract.SDPContract;
 import com.alipay.antchain.bridge.commons.bcdns.*;
 import com.alipay.antchain.bridge.commons.bcdns.utils.BIDHelper;
 import com.alipay.antchain.bridge.commons.bcdns.utils.CrossChainCertificateUtil;
@@ -66,8 +55,6 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-import redis.clients.jedis.JedisPool;
-import redis.clients.jedis.JedisPoolConfig;
 
 
 @Component
@@ -206,8 +193,6 @@ public class VcInternalBiz {
             signAlg = SignAlgoEnum.ED25519;
             } else {
                 throw new APIException(ExceptionEnum.KEYTYPE_ERROR);
-        } else {
-            signAlg = "";
         }
         certificate.setProof(
                 new AbstractCrossChainCertificate.IssueProof(
