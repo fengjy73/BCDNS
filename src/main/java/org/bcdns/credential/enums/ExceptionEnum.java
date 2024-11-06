@@ -36,8 +36,6 @@ public enum ExceptionEnum {
 
     PRIVATE_KEY_IS_INVALID(100113, "无效私钥"),
 
-    FAILED_TO_DECRYPT_PRIVATE(100114, "解析密文私钥失败"),
-
     PTCTRUSTROOT_SIGN_VERIFY_ERROR(100114, "ptctrustroot sign verify error"),
 
     REGISTER_PTCTRUSTROOT_ERROR(100115, "register ptctrustroot error"),
@@ -57,6 +55,8 @@ public enum ExceptionEnum {
     CONTRACT_INVOKE_ERROR(100122, "contract invoke error"),
 
     TPBTA_LEVEL_ERROR(100123, "tpbta level error"),
+
+    FAILED_TO_DECRYPT_PRIVATE(100124, "解析密文私钥失败"),
     ;
     private final Integer errorCode;
     private final String message;
