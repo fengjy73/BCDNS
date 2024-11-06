@@ -21,7 +21,7 @@ import java.util.Date;
 public class ApplyTest {
     @Test
     public void testPTCApply() throws Exception {
-        PrivateKeyManager privateKeyManager = new PrivateKeyManager("priSPKncqxV7SR5bJgTWxBpLDAotDbBsrGNAVky34VKzLXHppi");
+        PrivateKeyManager privateKeyManager = new PrivateKeyManager("");
         KeyPairEntity keyPair = KeyPairEntity.getBidAndKeyPair();
         BIDpublicKeyOperation[] biDpublicKeyOperation = new BIDpublicKeyOperation[1];
         biDpublicKeyOperation[0] = new BIDpublicKeyOperation();
@@ -57,7 +57,7 @@ public class ApplyTest {
 
     @Test
     public void testRelayApply() throws Exception {
-        PrivateKeyManager privateKeyManager = new PrivateKeyManager("priSPKeThUrwmBvigbe153GWQXRDuMUWwpM8fRBs4eQ82sQSgQ");
+        PrivateKeyManager privateKeyManager = new PrivateKeyManager("");
         KeyPairEntity keyPair = KeyPairEntity.getBidAndKeyPair();
         BIDpublicKeyOperation[] biDpublicKeyOperation = new BIDpublicKeyOperation[1];
         biDpublicKeyOperation[0] = new BIDpublicKeyOperation();
@@ -96,7 +96,7 @@ public class ApplyTest {
 
     @Test
     public void testRelayApply01() throws Exception {
-        PrivateKeyManager privateKeyManager = new PrivateKeyManager("priSPKo5zX8nHexxod3YNyuUzo5DeHyZXFHdizh5LYLUN3ZTSX");
+        PrivateKeyManager privateKeyManager = new PrivateKeyManager("");
         BIDpublicKeyOperation[] biDpublicKeyOperation = new BIDpublicKeyOperation[1];
         biDpublicKeyOperation[0] = new BIDpublicKeyOperation();
         biDpublicKeyOperation[0].setType(KeyType.ED25519);
@@ -131,7 +131,7 @@ public class ApplyTest {
 
     @Test
     public void testDomainNameApply() throws Exception {
-        PrivateKeyManager privateKeyManager = new PrivateKeyManager("priSPKeThUrwmBvigbe153GWQXRDuMUWwpM8fRBs4eQ82sQSgQ");
+        PrivateKeyManager privateKeyManager = new PrivateKeyManager("");
         KeyPairEntity keyPair = KeyPairEntity.getBidAndKeyPair();
         BIDpublicKeyOperation[] biDpublicKeyOperation = new BIDpublicKeyOperation[1];
         biDpublicKeyOperation[0] = new BIDpublicKeyOperation();
