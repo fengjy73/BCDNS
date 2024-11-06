@@ -7,13 +7,18 @@ import org.hibernate.validator.constraints.Range;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Size;
 
 import static org.bcdns.credential.common.constant.MessageConstant.*;
 
 @Data
 public class VcTpBtaReqDto {
+    @NotNull(message = DESC_VALID_NULL)
+    @Length(min = 1, max = 128, message = DESC_VALID_STRING)
     private String vcId;
 
+    @NotNull(message = DESC_VALID_NULL)
+    @Size(min = 1, message= DESC_VALID_BYTE)
     private byte[] tpbta;
 
     @NotNull(message = DESC_VALID_NULL)
@@ -24,7 +29,11 @@ public class VcTpBtaReqDto {
     @Length(min = 1, max = 128, message = DESC_VALID_STRING)
     private String publicKey;
 
+    @NotNull(message = DESC_VALID_NULL)
+    @Length(min = 1, max = 20, message = DESC_VALID_STRING)
     private String signAlgo;
 
+    @NotNull(message = DESC_VALID_NULL)
+    @Size(min = 1, message= DESC_VALID_BYTE)
     private byte[] sign;
 }

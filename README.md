@@ -20,9 +20,7 @@ BCDNS将功能实现分为两部分，分别为凭证颁发和凭证上链，PTC
 
 # 架构
 
-
-
-<img src="./src/docs/images/bcdns.jpg" style="zoom: 50%;" />
+![](https://github.com/caict-4iot-dev/BCDNS/tree/master/src/docs/images/bcdns.jpg)
 
 区块链域名系统向网络提供权威服务，包括域名签发、跨链身份凭证、网络路由等功能。
 
@@ -139,19 +137,10 @@ tree .
 
 配置文件在`conf`目录下，开发者使用`application-test.properties`进行配置的修改。
 
-- 需要修改MySQL、Redis的用户名和密码，源码test目录下的辅助工具`ConfigToolsTest`可以帮助加密密码，并生成解密公钥；
+- 需要修改MySQL、Redis的用户名和密码，密码使用public-key解密
 - 同时修改五个合约地址，使用上一节部署的五个合约；
-- 修改超级节点私钥，对于体验模式，没有对超级节点进行校验，可随意填写一个账户私钥；对于生产模式，用配置文件中默认提供的私钥即可；
-- 修改发证方的私钥，对于体验模式，需要填写部署合约时用到的账户地址的私钥；对于生产模式，用配置文件中默认提供的私钥和发证方的解密私钥即可。
-
-`ConfigToolsTest`使用返回结果示例：
-
-```
-password:123
-privateKey:MIIBVQIBADANBgk......ERcyDoNrK2sArWC
-publicKey:MFwwDQYJKoZIhvc......vnM6raAvpnYvGPcCAwEAAQ==
-password:iq7fRgyw261Dckm......+oNkHkbTRzpGvk6zqC6Klyxg==
-```
+- 修改超级节点私钥，对于体验模式，没有对超级节点进行校验，可随意填写一个账户私钥；
+- 修改发证方的私钥，需要填写部署合约时用到的账户的私钥；
 
 配置文件示例：
 
@@ -177,6 +166,9 @@ redis.host=127.0.0.1
 redis.port=6379
 redis.password=xxx //加密后的redis密码
 redis.publicKey=xxx //非对称加密公钥，用于解密redis密码
+
+mybatis.mapper-locations=classpath:mapper/*Mapper.xml
+mybatis.type-aliases-package=org.bcdns.credential.mapper
 
 dpos.contract.address=did:bid:efRH1Lbsuqwc6jRw3hK4H5Hp2RhHnryS 
 ptc.contract.address=xxx //PTCManager.sol合约地址
@@ -222,7 +214,7 @@ mysql> source init.sql;
 
 **第一步：服务初始化**
 
-服务成功启动之后，调用`/vc/init`接口，完成服务初始化操作，生成BCDNS根证书，同时生成BCDNS管理员API-Key。BCDNS根证书由超级节点签发，为发证方进行可信背书；API-Key用于生成access token，辅助发证方进行权限校验以调用审核接口。
+服务成功启动之后，调用`/vc/init`接口，完成服务初始化操作，生成BCDNS根证书和BCDNS管理员API-Key。BCDNS根证书由超级节点签发，为发证方进行可信背书；API-Key用于生成access token，辅助发证方进行权限校验以调用审核接口。
 
 ```bash
 curl -X POST http://localhost:8114/internal/vc/init
@@ -253,7 +245,7 @@ curl -H "Content-Type: application/json" -X POST -d '{"apiKey":"you_apiKey","api
   "errorCode": 0,
   "message": "success",
   "data": {
-    "accessToken": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3N1ZXJJZCI6ImRpZDpiaWQ6ZWZLTDJ3Tm5xV2ZyOWJ5amRib3hQM2tIckFmQWR0bzkiLCJhcGlLZXkiOiJUYTJPR3VwcEFSRXV2ekxoIiwiaXNzIjoiQklGLUNIQUlOIiwiZXhwIjoxNzA0Mzg1Njk0fQ.OE0B22sW42eRXokxIMwOnp1NXxZCC7EKB-M-_x7nH5U",
+    "accessToken": "eyJ0eXAiOiJ......",
     "expireIn": 36000
   }
 }
@@ -348,7 +340,7 @@ curl -H "Content-Type: application/json" -X POST -d '{"credentialId":"you_creden
     "errorCode": 0,
     "message": "success",
     "data": {
-        "credential": "AAAPAgAAA......+sd4m1Q4="
+        "credential": "AAAPAgA......"
     }
 }
 ```
