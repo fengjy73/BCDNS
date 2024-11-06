@@ -20,9 +20,7 @@ BCDNS将功能实现分为两部分，分别为凭证颁发和凭证上链，PTC
 
 # 架构
 
-
-
-<img src="./src/docs/images/bcdns.jpg" style="zoom: 50%;" />
+![](https://github.com/caict-4iot-dev/BCDNS/tree/master/src/docs/images/bcdns.jpg)
 
 区块链域名系统向网络提供权威服务，包括域名签发、跨链身份凭证、网络路由等功能。
 
@@ -112,7 +110,7 @@ tree .
 
 ## 部署合约
 
-要部署的合约一个有三个，PTCManager.sol、RelayerManager.sol和DomainNameManager.sol，合约代码在`src/main/resources/contract目录中`。合约部署是将以上3个合约部署到星火链测试网上。
+要部署的合约一个有3个，PTCManager.sol、RelayerManager.sol和DomainNameManager.sol，合约代码在`src/main/resources/contract目录中`。合约部署是将以上3个合约部署到星火链测试网上。
 
 - 账户准备
 
@@ -171,6 +169,9 @@ redis.port=6379
 redis.password=xxx //加密后的redis密码
 redis.publicKey=xxx //非对称加密公钥，用于解密redis密码
 
+mybatis.mapper-locations=classpath:mapper/*Mapper.xml
+mybatis.type-aliases-package=org.bcdns.credential.mapper
+
 dpos.contract.address=did:bid:efRH1Lbsuqwc6jRw3hK4H5Hp2RhHnryS 
 sdk.url=http://test.bifcore.bitfactory.cn 
 object-identity.supernode.bid-private-key=xxx //星火链测试网超级节点私钥（采用加密形式），体验模式可以随意填写一个账户私钥
@@ -209,7 +210,7 @@ mysql> source init.sql;
 
 **第一步：服务初始化**
 
-服务成功启动之后，调用`/vc/init`接口，完成服务初始化操作，生成BCDNS根证书，部署ptc管理合约、relayer管理合约和区块链域名管理合约，同时生成BCDNS管理员API-Key。BCDNS根证书由超级节点签发，为发证方进行可信背书；API-Key用于生成access token，辅助发证方进行权限校验以调用审核接口。
+服务成功启动之后，调用`/vc/init`接口，完成服务初始化操作，生成BCDNS根证书和BCDNS管理员API-Key。BCDNS根证书由超级节点签发，为发证方进行可信背书；API-Key用于生成access token，辅助发证方进行权限校验以调用审核接口。
 
 ```bash
 curl -X POST http://localhost:8114/internal/vc/init
@@ -240,7 +241,7 @@ curl -H "Content-Type: application/json" -X POST -d '{"apiKey":"you_apiKey","api
   "errorCode": 0,
   "message": "success",
   "data": {
-    "accessToken": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3N1ZXJJZCI6ImRpZDpiaWQ6ZWZLTDJ3Tm5xV2ZyOWJ5amRib3hQM2tIckFmQWR0bzkiLCJhcGlLZXkiOiJUYTJPR3VwcEFSRXV2ekxoIiwiaXNzIjoiQklGLUNIQUlOIiwiZXhwIjoxNzA0Mzg1Njk0fQ.OE0B22sW42eRXokxIMwOnp1NXxZCC7EKB-M-_x7nH5U",
+    "accessToken": "eyJ0eXAiOiJ......",
     "expireIn": 36000
   }
 }
@@ -328,7 +329,7 @@ curl -H "Content-Type: application/json" -X POST -d '{"credentialId":"you_creden
     "errorCode": 0,
     "message": "success",
     "data": {
-        "credential": "AAAPAgAAAAABAAAAMQEAKQAAAGRpZDpiaWQ6ZWYyN3N0WkpBZXNlNnZXcDRyYmdoOHdRdkFRQTh3dnJLAgABAAAAAgMAOwAAAAAANQAAAAAAAQAAAAEBACgAAABkaWQ6YmlkOmVmS0wyd05ucVdmcjlieWpkYm94UDNrSHJBZkFkdG85BAAIAAAAHlOWZQAAAAAFAAgAAACehndnAAAAAAYA4QAAAAAA2wAAAAAAAwAAADEuMAEABAAAAHRlc3QCAAEAAAABAwA7AAAAAAA1AAAAAAABAAAAAQEAKAAAAGRpZDpiaWQ6ZWZoelNuUnJIQkRxWDhiZlVRVFVpaWdoQUU5c1M1TGIEAHoAAAB7InB1YmxpY0tleSI6W3sidHlwZSI6IkVEMjU1MTkiLCJwdWJsaWNLZXlIZXgiOiJiMDY1NjZhZDE1ZTk1ZTYyZTc2MWI4OGE0M2E3MGI2OTAyOTAzNTljYjRkY2E5MGE2YWNmMmM2MmRmYjc2MTVkYzM2NTIyIn1dfQcAiAAAAAAAggAAAAAAAwAAAFNNMwEAIAAAAGwYfQYqK3i2zMkNgMSQTVkpUS2eNu2B0RYl1kNMFKv3AgAHAAAARWQyNTUxOQMAQAAAAOh8f97pwWR2bkv1/t4Ff6x0YpAla/O/BQ/aLztF+BeIS4veZHBkEtEFTtuF2cToaQGS5dYc2FUCijm+sd4m1Q4="
+        "credential": "AAAPAgA......"
     }
 }
 ```

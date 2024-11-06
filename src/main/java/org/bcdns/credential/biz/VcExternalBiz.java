@@ -155,7 +155,7 @@ public class VcExternalBiz {
                 if (((HashMap<String, Object>) callResp.getResult().getQueryRets().get(0)).containsKey("result")) {
                     JSONObject result = JSONObject.parseObject(JSONObject.toJSONString(callResp.getResult().getQueryRets().get(0))).getJSONObject("result");
                     String roleType = result.getJSONObject("data").getJSONObject("nodeInfo").getString("roleType");
-                    if (!"backbone".equals(roleType)) {
+                    if (!"backbone".equals(roleType) && !"super".equals(roleType) && !"validator".equals(roleType)) {
                         throw new APIException(ExceptionEnum.SYS_ERROR, "check is not backbone node");
                     }
                 } else {
