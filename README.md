@@ -110,7 +110,7 @@ tree .
 
 ## 部署合约
 
-要部署的合约一个有3个，PTCManager.sol、RelayerManager.sol和DomainNameManager.sol，合约代码在`src/main/resources/contract目录中`。合约部署是将以上3个合约部署到星火链测试网上。
+要部署的合约一个有五个，PTCManager.sol、RelayerManager.sol、DomainNameManager.sol、PTCTrustRootManger.sol和ThirdPartyBlockchainTrustAnchor.sol，合约代码在`src/main/resources/contract`目录中。合约部署是将以上5个合约部署到星火链测试网上。
 
 - 账户准备
 
@@ -127,8 +127,6 @@ tree .
     "private_key" : "priSPKkeE5bJuRdsbBeYRMHR6vF6M6PJV97jbwAHomVQodn3x3"
     ```
 
-    
-
   - 测试网星火令可以通过[星火插件钱包](https://bif-doc.readthedocs.io/zh-cn/1.0.0/tools/wallet.html)申请**星火个人数字凭证**（注意在钱包右上角，将连接的网络切换为星火体验网，即测试网），这里需要人工审核，待审核通过后（一周会审核1到2次，也可用通过加入[星火开发者社区](https://bif-doc.readthedocs.io/zh-cn/2.0.0/other/开发者社区.html)，请求快速审核），即可获取`100`星火令。
 
 - 合约部署
@@ -140,7 +138,7 @@ tree .
 配置文件在`conf`目录下，开发者使用`application-test.properties`进行配置的修改。
 
 - 需要修改MySQL、Redis的用户名和密码，密码使用public-key解密
-- 同时修改三个合约地址，使用上一节部署的三个合约；
+- 同时修改五个合约地址，使用上一节部署的五个合约；
 - 修改超级节点私钥，对于体验模式，没有对超级节点进行校验，可随意填写一个账户私钥；
 - 修改发证方的私钥，需要填写部署合约时用到的账户的私钥；
 
@@ -173,6 +171,12 @@ mybatis.mapper-locations=classpath:mapper/*Mapper.xml
 mybatis.type-aliases-package=org.bcdns.credential.mapper
 
 dpos.contract.address=did:bid:efRH1Lbsuqwc6jRw3hK4H5Hp2RhHnryS 
+ptc.contract.address=xxx //PTCManager.sol合约地址
+relay.contract.address=xxx //RelayerManager.sol合约地址
+domain-name.contract.address=xxx //DomainNameManager.sol合约地址
+tpbta.contract.address=xxx //ThirdPartyBlockchainTrustAnchor.sol合约地址
+ptc-trust-root.contract.address=xxx //PTCTrustRootManger.sol合约地址
+
 sdk.url=http://test.bifcore.bitfactory.cn 
 object-identity.supernode.bid-private-key=xxx //星火链测试网超级节点私钥（采用加密形式），体验模式可以随意填写一个账户私钥
 object-identity.issuer.bid-private-key=xxx //发证方私钥（采用加密形式），需要拥有星火令
@@ -222,7 +226,7 @@ curl -X POST http://localhost:8114/internal/vc/init
 {
      "apiKey": "xveVZbnefonQuQ8e",
      "apiSecret": "df66d34d91bbcc77f9ade4fd825edd1e26aca893",
-     "issuerId": "did:bid:efexmw5GLPUU92ECpZMxpBPyCeZJhCDW",
+     "issuerId": "did:bid:efexmw5GLPUU92ECpZMxpBPyCeZJhCDW"
 }
 ```
 
@@ -249,7 +253,14 @@ curl -H "Content-Type: application/json" -X POST -d '{"apiKey":"you_apiKey","api
 
 **第三步：申请PTC证书**
 
-参数的构建可以使用`src/main/resources/tool `目录下的小工具。
+调用/external/vc/apply接口，输入参数详情可查看src/docs/http-api接口word文档说明，test/java/org/bcdns/credential/ApplyTest的testPTCApply可以辅助生成PTC证书申请参数，直接Run或者Debug该函数即可。例如：
+
+```
+content:[0, 0, -127, 1, 0, 0, 0, 0, ..., 57, 101, 34, 125, 93, 125]
+credentialType:2
+publicKey:b0656617148...8b273f9c704
+sign:[-55, -50, 17, 21, ..., 88, -113, 53, 62, 12]
+```
 
 将上述得到的参数填入下面curl对应的地方。`content`使用上述返回content的byte数组即可，`credentialType`使用上述返回的credentialType即可，`publicKey`使用上面的Hex字符串，`sign`填入上面的byte数组。
 
@@ -351,7 +362,53 @@ curl -X POST http://localhost:8114/external/vc/root
     "errorCode": 0,
     "message": "成功",
     "data": {
-        "bcdnsRootCredential": "AAAUAgAAA......",
+        "bcdnsRootCredential": "AAAUAgAAA......"
+    }
+}
+```
+
+**第八步：注册PTC信任根**
+
+调用`/external/vc/add/ptctrustroot`接口注册PTC信任根。
+
+```bash
+curl -H "Content-Type:application/json" -X POST -d '{"ptcTrustRoot":"you_ptcTrustRoot"}' http://localhost:8114/external/vc/add/ptctrustroot
+```
+
+其中，`your_ptcTrustRoot`是`"0x"`开头，Hex格式编码的PTC信任根。
+
+返回类似下面的结果，`message`显示成功，`data.message`为注册PTC信任根的交易哈希txHash。
+
+```json
+{
+    "errorCode": 0,
+    "message": "成功",
+    "data": {
+        "status": 1,
+        "message": "0xece9a8d04......"
+    }
+}
+```
+
+**第九步：注册第三方信任锚TPBTA**
+
+调用`/external/vc/add/tpbta`接口注册第三方信任锚TPBTA。
+
+```bash
+curl -H "Content-Type: application/json" -X POST -d '{"vcId":"relayer_vcId","tpbta":"you_tpbta","signAlgo":"you_signAlgo","sign":"your_sign"}' http://localhost:8114/external/vc/add/tpbta
+```
+
+其中，`vcId`是中继证书的ID，`tpbta`是`"0x"`开头，Hex格式编码的第三方信任锚TPBTA，`signAlgo`是中继证书对注册请求的签名算法类型，默认ED25519，`sign`是中继证书对注册申请的签名。
+
+返回类似下面的结果，`message`显示成功，`data.message`为注册第三方信任锚TPBTA的交易哈希txHash。
+
+```json
+{
+    "errorCode": 0,
+    "message": "成功",
+    "data": {
+        "status": 1,
+        "message": "0x05c724b27......"
     }
 }
 ```
