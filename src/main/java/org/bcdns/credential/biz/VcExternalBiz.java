@@ -21,11 +21,12 @@ import cn.hutool.core.util.HexUtil;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.druid.filter.config.ConfigTools;
 import com.alibaba.fastjson.JSONObject;
-import com.alipay.antchain.bridge.commons.bcdns.AbstractCrossChainCertificate;
-import com.alipay.antchain.bridge.commons.bcdns.CrossChainCertificateFactory;
-import com.alipay.antchain.bridge.commons.bcdns.CrossChainCertificateTypeEnum;
+import com.alipay.antchain.bridge.commons.bcdns.*;
+import com.alipay.antchain.bridge.commons.bcdns.utils.BIDHelper;
 import com.alipay.antchain.bridge.commons.bcdns.utils.CrossChainCertificateUtil;
+import com.alipay.antchain.bridge.commons.core.base.BIDInfoObjectIdentity;
 import com.alipay.antchain.bridge.commons.core.base.ObjectIdentity;
+import com.alipay.antchain.bridge.commons.core.base.ObjectIdentityType;
 import com.alipay.antchain.bridge.commons.core.base.X509PubkeyInfoObjectIdentity;
 import com.alipay.antchain.bridge.commons.core.ptc.PTCTrustRoot;
 import com.alipay.antchain.bridge.commons.core.ptc.ThirdPartyBlockchainTrustAnchor;
@@ -198,8 +199,28 @@ public class VcExternalBiz {
     }
 
     private void isRelayer(String publicKey) throws Exception {
-        ObjectIdentity objectIdentity = new X509PubkeyInfoObjectIdentity(Base64.decode(publicKey));
-        VcAuditDomain vcAuditDomain = vcAuditService.getVcIdByVcOwner(objectIdentity.encode());
+//        VcAuditDomain vcAuditDomain;
+//        if (Base64.isBase64(publicKey)) {
+//            X509PubkeyInfoObjectIdentity tempOid = new X509PubkeyInfoObjectIdentity(Base64.decode(publicKey));
+//            vcAuditDomain = vcAuditService.getVcIdByVcOwner(
+//                    new BIDInfoObjectIdentity(BIDHelper.encAddress(
+//                            BIDHelper.getKeyTypeFromPublicKey(tempOid.getPublicKey()), tempOid.getRawPublicKey()
+//                    )).encode()
+//            );
+//        } else {
+//            PublicKeyManager publicKeyManager = new PublicKeyManager(publicKey);
+//            ObjectIdentity objectIdentity = new ObjectIdentity(ObjectIdentityType.BID, publicKeyManager.getEncAddress().getBytes());
+//            vcAuditDomain = vcAuditService.getVcIdByVcOwner(objectIdentity.encode());
+//        }
+
+
+        X509PubkeyInfoObjectIdentity tempOid = new X509PubkeyInfoObjectIdentity(Base64.decode(publicKey));
+        VcAuditDomain vcAuditDomain = vcAuditService.getVcIdByVcOwner(
+                new BIDInfoObjectIdentity(BIDHelper.encAddress(
+                        BIDHelper.getKeyTypeFromPublicKey(tempOid.getPublicKey()), tempOid.getRawPublicKey()
+                )).encode()
+        );
+
         if (Tools.isNull(vcAuditDomain)) {
             throw new APIException(ExceptionEnum.SYS_ERROR, "check relay error, credential is not exist");
         }
@@ -254,6 +275,57 @@ public class VcExternalBiz {
                     break;
             }
         }
+
+        //check apply again
+//        byte[] vcOwnerId = getVcOwnerId(vcApplyReqDto.getCredentialType(), content);
+//        VcAuditDomain vcAuditDomain = vcAuditService.getVcIdByVcOwner(vcOwnerId);
+//
+//        if (Tools.isNull(vcAuditDomain)) {
+//            throw new APIException(ExceptionEnum.SYS_ERROR, "check relay error, credential is not exist");
+//        }
+//
+//        VcRecordDomain vcRecordDomain = vcRecordService.getVcRecord4VcId(vcAuditDomain.getVcId());
+//        if (Tools.isNull(vcRecordDomain)) {
+//            throw new APIException(ExceptionEnum.SYS_ERROR, "check relay error, credential is not exist");
+//        }
+//        if (!vcRecordDomain.getCredentialType().equals(3)) {
+//            throw new APIException(ExceptionEnum.SYS_ERROR, "check relay error, credential type is not relay");
+//        }
+//        if (vcRecordDomain.getStatus().equals(StatusEnum.REVOKE.getCode())) {
+//            throw new APIException(ExceptionEnum.SYS_ERROR, "check relay error, credential has revoked");
+//        }
+    }
+
+    private byte[] getBidEncode(ObjectIdentity objectIdentity) {
+        if (objectIdentity.getType() == ObjectIdentityType.X509_PUBLIC_KEY_INFO) {
+            X509PubkeyInfoObjectIdentity tempOid = new X509PubkeyInfoObjectIdentity(objectIdentity.getRawId());
+            return new BIDInfoObjectIdentity(BIDHelper.encAddress(
+                    BIDHelper.getKeyTypeFromPublicKey(tempOid.getPublicKey()), tempOid.getRawPublicKey())).encode();
+        } else {
+            return objectIdentity.encode();
+        }
+    }
+
+    private byte[] getVcOwnerId(Integer credentialType, byte[] content) {
+        byte[] vcOwnerId = null;
+        AbstractCrossChainCertificate cert = CrossChainCertificateFactory.createCrossChainCertificate(content);
+        switch (CrossChainCertificateTypeEnum.valueOf(credentialType.byteValue())) {
+            case PROOF_TRANSFORMATION_COMPONENT_CERTIFICATE:
+                PTCCredentialSubject ptcCredentialSubject = PTCCredentialSubject.decode(cert.getCredentialSubject());
+                vcOwnerId = getBidEncode(ptcCredentialSubject.getApplicant());
+                break;
+            case RELAYER_CERTIFICATE:
+                RelayerCredentialSubject relayerCredentialSubject = RelayerCredentialSubject.decode(cert.getCredentialSubject());
+                vcOwnerId = getBidEncode(relayerCredentialSubject.getApplicant());
+                break;
+            case DOMAIN_NAME_CERTIFICATE:
+                DomainNameCredentialSubject domainNameCredentialSubject = DomainNameCredentialSubject.decode(cert.getCredentialSubject());
+                vcOwnerId = getBidEncode(domainNameCredentialSubject.getApplicant());
+                break;
+            default:
+                break;
+        }
+        return vcOwnerId;
     }
 
     public DataResp<VcApplyRespDto> vcApply(VcApplyReqDto vcApplyReqDto) {

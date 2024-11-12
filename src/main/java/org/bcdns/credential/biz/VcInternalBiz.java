@@ -25,9 +25,7 @@ import com.alibaba.druid.filter.config.ConfigTools;
 import com.alipay.antchain.bridge.commons.bcdns.*;
 import com.alipay.antchain.bridge.commons.bcdns.utils.BIDHelper;
 import com.alipay.antchain.bridge.commons.bcdns.utils.CrossChainCertificateUtil;
-import com.alipay.antchain.bridge.commons.core.base.CrossChainDomain;
-import com.alipay.antchain.bridge.commons.core.base.ObjectIdentity;
-import com.alipay.antchain.bridge.commons.core.base.ObjectIdentityType;
+import com.alipay.antchain.bridge.commons.core.base.*;
 import com.alipay.antchain.bridge.commons.utils.crypto.HashAlgoEnum;
 import com.alipay.antchain.bridge.commons.utils.crypto.SignAlgoEnum;
 import com.auth0.jwt.exceptions.JWTVerificationException;
@@ -417,22 +415,31 @@ public class VcInternalBiz {
         return abstractCrossChainCertificate;
     }
 
-    private byte[] getVcOwnerId(VcRecordDomain domain) {
+    private byte[] getBidEncode(ObjectIdentity objectIdentity) {
+        if (objectIdentity.getType() == ObjectIdentityType.X509_PUBLIC_KEY_INFO) {
+            X509PubkeyInfoObjectIdentity tempOid = new X509PubkeyInfoObjectIdentity(objectIdentity.getRawId());
+            return new BIDInfoObjectIdentity(BIDHelper.encAddress(
+                    BIDHelper.getKeyTypeFromPublicKey(tempOid.getPublicKey()), tempOid.getRawPublicKey())).encode();
+        } else {
+            return objectIdentity.encode();
+        }
+    }
+
+    private byte[] getVcOwnerId(Integer credentialType, byte[] content) {
         byte[] vcOwnerId = null;
-        Integer credentialType = domain.getCredentialType();
-        AbstractCrossChainCertificate cert = CrossChainCertificateFactory.createCrossChainCertificate(domain.getContent());
+        AbstractCrossChainCertificate cert = CrossChainCertificateFactory.createCrossChainCertificate(content);
         switch (CrossChainCertificateTypeEnum.valueOf(credentialType.byteValue())) {
             case PROOF_TRANSFORMATION_COMPONENT_CERTIFICATE:
                 PTCCredentialSubject ptcCredentialSubject = PTCCredentialSubject.decode(cert.getCredentialSubject());
-                vcOwnerId = ptcCredentialSubject.getApplicant().encode();
+                vcOwnerId = getBidEncode(ptcCredentialSubject.getApplicant());
                 break;
             case RELAYER_CERTIFICATE:
                 RelayerCredentialSubject relayerCredentialSubject = RelayerCredentialSubject.decode(cert.getCredentialSubject());
-                vcOwnerId = relayerCredentialSubject.getApplicant().encode();
+                vcOwnerId = getBidEncode(relayerCredentialSubject.getApplicant());
                 break;
             case DOMAIN_NAME_CERTIFICATE:
                 DomainNameCredentialSubject domainNameCredentialSubject = DomainNameCredentialSubject.decode(cert.getCredentialSubject());
-                vcOwnerId = domainNameCredentialSubject.getApplicant().encode();
+                vcOwnerId = getBidEncode(domainNameCredentialSubject.getApplicant());
                 break;
             default:
                 break;
@@ -488,7 +495,7 @@ public class VcInternalBiz {
                     throw new APIException(ExceptionEnum.SUBMIT_TX_ERROR);
                 }
                 vcAuditDomain.setVcId(vcId);
-                byte[] vcOwnerId = getVcOwnerId(vcRecordDomain);
+                byte[] vcOwnerId = getVcOwnerId(vcRecordDomain.getCredentialType(), vcRecordDomain.getContent());
                 vcAuditDomain.setVcOwnerId(vcOwnerId);
                 vcAuditDomain.setReason(reason);
             } else if (StatusEnum.AUDIT_REJECT.getCode().equals(status)) {
