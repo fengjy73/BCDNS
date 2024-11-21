@@ -3,7 +3,8 @@
 1、工具类jar包（BCDNS-tool-1.0-SNAPSHOT-jar-with-dependencies.jar）
 
 2、在jar包目录下用命令行执行 
-**申请PTC参数：**
+
+### **申请PTC参数：**
 
 | 参数号 | 说明                                                         |
 | ------ | ------------------------------------------------------------ |
@@ -16,7 +17,7 @@
 ```
 java -cp BCDNS-tool-1.0-SNAPSHOT-jar-with-dependencies.jar org.example.ApplyTool ptc 申请人的私钥 ptc的公钥 ptc的type 签名算法
 ```
-**申请relay（中继）参数：**
+### **申请relay（中继）参数：**
 
 | 参数号 | 说明                                        |
 | ------ | ------------------------------------------- |
@@ -29,7 +30,7 @@ java -cp BCDNS-tool-1.0-SNAPSHOT-jar-with-dependencies.jar org.example.ApplyTool
 java -cp BCDNS-tool-1.0-SNAPSHOT-jar-with-dependencies.jar org.example.ApplyTool relay 申请人的私钥 relay的公钥 签名算法
 ```
 
-**申请域名参数：**
+### **申请域名参数：**
 
 | 参数号 | 说明                                        |
 | ------ | ------------------------------------------- |
@@ -43,7 +44,7 @@ java -cp BCDNS-tool-1.0-SNAPSHOT-jar-with-dependencies.jar org.example.ApplyTool
 java -cp BCDNS-tool-1.0-SNAPSHOT-jar-with-dependencies.jar org.example.ApplyTool domainName 申请人的私钥 区块链的公钥 申请的区块链域名 签名算法
 ```
 
-**注册PTCTrustRoot参数：**
+### **注册PTCTrustRoot参数：**
 
 | 参数号 | 说明                                      |
 | ------ | ----------------------------------------- |
@@ -55,7 +56,7 @@ java -cp BCDNS-tool-1.0-SNAPSHOT-jar-with-dependencies.jar org.example.ApplyTool
 java -cp BCDNS-tool-1.0-SNAPSHOT-jar-with-dependencies.jar org.example.ApplyTool newPtcTrustRoot ptc的证书 ptc的私钥
 ```
 
-**解析CRS（Certificate Signing Request）即证书签名请求文件**
+### **解析CRS（Certificate Signing Request）即证书签名请求文件**
 
 CRS由relay和ptc的CLI命令生成
 
@@ -68,3 +69,26 @@ CRS由relay和ptc的CLI命令生成
 ```
 java -cp BCDNS-tool-1.0-SNAPSHOT-jar-with-dependencies.jar org.example.ApplyTool CSR 私钥 CSR文件
 ```
+
+### **BIF地址转化为bytes32类型**
+
+| 参数号 | 说明                 |
+| ------ | -------------------- |
+| 0      | getBifAddressBytes32 |
+| 1      | 地址                 |
+
+```
+java -cp BCDNS-tool-1.0-SNAPSHOT-jar-with-dependencies.jar org.example.ApplyTool getBifAddressBytes32 地址
+```
+
+### **Mychain的SDP合约转化为bytes32**
+
+| 参数号 | 说明                                                         |
+| ------ | ------------------------------------------------------------ |
+| 0      | getMyChainSDPBytes32                                         |
+| 1      | MyChain的SDP系统合约的地址，在r-cli终端通过get-blockchain-contracts命令查询，例如SDP_EVM_CONTRACT_cebb48d0-359b-4068-97ad-654b8b443c01 |
+
+```
+java -cp BCDNS-tool-1.0-SNAPSHOT-jar-with-dependencies.jar org.example.ApplyTool getBifAddressBytes32 SDP合约地址
+```
+

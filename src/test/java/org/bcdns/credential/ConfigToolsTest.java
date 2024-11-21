@@ -4,7 +4,7 @@ import cn.bif.module.encryption.key.PrivateKeyManager;
 import cn.bif.module.encryption.key.PublicKeyManager;
 import cn.bif.module.encryption.model.KeyMember;
 import cn.bif.module.encryption.model.KeyType;
-import cn.hutool.core.codec.Base58;
+import cn.bif.utils.base.Base58;
 import cn.hutool.core.codec.Base64;
 import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.HexUtil;
@@ -28,6 +28,7 @@ import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
 import java.math.BigInteger;
+import java.nio.charset.StandardCharsets;
 import java.security.KeyPair;
 import java.security.MessageDigest;
 import java.security.PublicKey;
@@ -47,7 +48,7 @@ public class ConfigToolsTest {
 
     @Test
     public void testEncrypt() throws Exception {
-        String password = "priSPKt9wkwEwc4suujrhf5Rxwdpxryx5QjBkuQyHjejKAwUBm";
+        String password = "123456";
         String privateKey = "MIIBVQIBADANBgkqhkiG9w0BAQEFAASCAT8wggE7AgEAAkEAunLtL3wVMCmLCj9TrMEkAYLIYu26pk2FGYkKg1wKnufxeToMOGgFa3B44b2/uE+ojlg3/q07maQW36cPEf6SRwIDAQABAkBoBb63A29+026zZOl2NLu17BWIvEGqjw13VbH739o9FQ5R20jI10Ypq83Gsg7eLkTXTlkSQ4W1UNJZCM9//xQBAiEA7VKb/g6wve1WYeDbsWcCHbFV06mBtvwCHqNWzQyDvYECIQDJH1pKg6t3xIzqw9TwNbWXJZPoJrRTdbwhHGSWFr3DxwIhAILYSgMvzEha44aBd/7+YQ9H558UVN0zYmPMAJ566OOBAiBFR26Dwm1bOTJNYB3GjMm7ge88BbESGrkuMqiXZsgBWwIhALYOVdvMW+BWLC+9WMwz4TwnpmJcxSAIPGP3ijX2Et9e";
         System.out.println("password:" + encrypt(privateKey, password));
     }
@@ -157,6 +158,14 @@ public class ConfigToolsTest {
                                 "-----END BCDNS TRUST ROOT CERTIFICATE-----").getBytes()).encode()
                 )
         );
+    }
+
+    @Test
+    public void getSDP() throws Exception {
+        String address = "SDP_EVM_CONTRACT_cebb48d0-359b-4068-97ad-654b8b443c01";
+        MessageDigest digest = MessageDigest.getInstance("SHA-256");
+        byte[] hash = digest.digest(address.getBytes(StandardCharsets.UTF_8));
+        System.out.println(HexUtil.encodeHexStr(hash));
     }
 
 }

@@ -426,25 +426,25 @@ public class VcInternalBiz {
     }
 
     private byte[] getVcOwnerId(Integer credentialType, byte[] content) {
-        byte[] vcOwnerId = null;
         AbstractCrossChainCertificate cert = CrossChainCertificateFactory.createCrossChainCertificate(content);
         switch (CrossChainCertificateTypeEnum.valueOf(credentialType.byteValue())) {
             case PROOF_TRANSFORMATION_COMPONENT_CERTIFICATE:
                 PTCCredentialSubject ptcCredentialSubject = PTCCredentialSubject.decode(cert.getCredentialSubject());
-                vcOwnerId = getBidEncode(ptcCredentialSubject.getApplicant());
-                break;
+                return getBidEncode(ptcCredentialSubject.getApplicant());
             case RELAYER_CERTIFICATE:
                 RelayerCredentialSubject relayerCredentialSubject = RelayerCredentialSubject.decode(cert.getCredentialSubject());
-                vcOwnerId = getBidEncode(relayerCredentialSubject.getApplicant());
-                break;
+                return getBidEncode(relayerCredentialSubject.getApplicant());
             case DOMAIN_NAME_CERTIFICATE:
                 DomainNameCredentialSubject domainNameCredentialSubject = DomainNameCredentialSubject.decode(cert.getCredentialSubject());
-                vcOwnerId = getBidEncode(domainNameCredentialSubject.getApplicant());
-                break;
+                byte[] suffix = getBidEncode(domainNameCredentialSubject.getApplicant());
+                byte[] prefix = domainNameCredentialSubject.getDomainName().toBytes();
+                byte[] resultArray = new byte[prefix.length + suffix.length];
+                System.arraycopy(prefix, 0, resultArray, 0, prefix.length);
+                System.arraycopy(suffix, 0, resultArray, prefix.length, suffix.length);
+                return resultArray;
             default:
-                break;
+                return null;
         }
-        return vcOwnerId;
     }
 
     public DataResp<VcIssueAuditRespDto> vcAudit(String accessToken, VcIssueAuditReqDto vcIssueAuditReqDto) {
@@ -474,17 +474,24 @@ public class VcInternalBiz {
             }
 
             VcAuditDomain vcAuditDomain = new VcAuditDomain();
+            byte[] vcOwnerId = getVcOwnerId(vcRecordDomain.getCredentialType(), vcRecordDomain.getContent());
+            VcAuditDomain vcAuditDomainTemp = vcAuditService.getVcIdByVcOwner(vcOwnerId);
+            if (!Tools.isNull(vcAuditDomainTemp)) {
+                throw new APIException(ExceptionEnum.CREDENTIAL_AUDITED, "The application credential has been reviewed and approved");
+            }
+
+            vcAuditDomain.setVcOwnerId(vcOwnerId);
+
             VcIssueAuditRespDto vcIssueAuditRespDto = new VcIssueAuditRespDto();
             String txHash;
-            String vcId;
+            KeyPairEntity keyPairEntity = KeyPairEntity.getBidAndKeyPair();
+            String vcId = keyPairEntity.getEncAddress();
             AbstractCrossChainCertificate abstractCrossChainCertificate;
             if (StatusEnum.AUDIT_PASS.getCode().equals(status)) {
                 ApiKeyDomain apiKeyDomain = apiKeyService.getApiKeyDomain(1);
                 String encryptIssuerBidPrivateKey = apiKeyDomain.getIssuerPrivateKey();
                 String issuerPrivateKey = ConfigTools.decrypt(decodePublicKey, encryptIssuerBidPrivateKey);
                 //create vc
-                KeyPairEntity keyPairEntity = KeyPairEntity.getBidAndKeyPair();
-                vcId = keyPairEntity.getEncAddress();
                 abstractCrossChainCertificate = createVc(issuerPrivateKey, issuerId, vcRecordDomain, vcId);
                 if (Tools.isNull(abstractCrossChainCertificate)) {
                     throw new APIException(ExceptionEnum.CREDENTIAL_BUILD_ERROR);
@@ -495,11 +502,9 @@ public class VcInternalBiz {
                     throw new APIException(ExceptionEnum.SUBMIT_TX_ERROR);
                 }
                 vcAuditDomain.setVcId(vcId);
-                byte[] vcOwnerId = getVcOwnerId(vcRecordDomain.getCredentialType(), vcRecordDomain.getContent());
-                vcAuditDomain.setVcOwnerId(vcOwnerId);
                 vcAuditDomain.setReason(reason);
             } else if (StatusEnum.AUDIT_REJECT.getCode().equals(status)) {
-                vcId = "";
+                vcAuditDomain.setVcId(vcId);
                 txHash = "";
                 abstractCrossChainCertificate = null;
                 vcAuditDomain.setReason(reason);
@@ -549,7 +554,18 @@ public class VcInternalBiz {
                 throw new APIException(ExceptionEnum.ACCESS_TOKEN_INVALID);
             }
 
-            reqDto.setStartNum((reqDto.getPageStart() - 1) * reqDto.getPageSize());
+            int pageStart = reqDto.getPageStart();
+            int pageSize = reqDto.getPageSize();
+
+            if (pageStart <= 0) {
+                throw new APIException(ExceptionEnum.PARAME_ERROR, "PageStart must be greater than 0");
+            }
+
+            if (pageSize <= 0 || pageSize > 1000) {
+                throw new APIException(ExceptionEnum.PARAME_ERROR, "PageSize must be greater than 0 and less than 1000");
+            }
+
+            reqDto.setStartNum((pageStart - 1) * pageSize);
             if (reqDto.getStatus() != null && reqDto.getStatus().length == 0) {
                 reqDto.setStatus(null);
             }
@@ -558,8 +574,8 @@ public class VcInternalBiz {
             int total = vcRecordService.queryListCount(reqDto);
             VcApplyListRespDto respDto = new VcApplyListRespDto();
             respDto.setDataList(issueListDTOList);
-            respDto.getPage().setPageSize(reqDto.getPageSize());
-            respDto.getPage().setPageStart(reqDto.getPageStart());
+            respDto.getPage().setPageSize(pageSize);
+            respDto.getPage().setPageStart(pageStart);
             respDto.getPage().setPageTotal(total);
             dataResp.setData(respDto);
             dataResp.buildSuccessField();
@@ -599,15 +615,15 @@ public class VcInternalBiz {
                 throw new APIException(ExceptionEnum.ACCESS_TOKEN_INVALID);
             }
 
-            if (!reqDto.getApplyNo().isEmpty()) {
+            if (reqDto.getApplyNo() != null && !reqDto.getApplyNo().isEmpty()) {
                 if (reqDto.getApplyNo().length() != 32) {
-                    throw new APIException(ExceptionEnum.PARAME_ERROR);
+                    throw new APIException(ExceptionEnum.PARAME_ERROR, "applyNo length is not 32");
                 }
             }
 
-            if (!reqDto.getCredentialId().isEmpty()) {
+            if (reqDto.getCredentialId() != null && !reqDto.getCredentialId().isEmpty()) {
                 if (!reqDto.getCredentialId().startsWith("did:bid")) {
-                    throw new APIException(ExceptionEnum.PARAME_ERROR);
+                    throw new APIException(ExceptionEnum.PARAME_ERROR, "credential id is not start with did:bid");
                 }
             }
 

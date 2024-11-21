@@ -277,23 +277,12 @@ public class VcExternalBiz {
         }
 
         //check apply again
-//        byte[] vcOwnerId = getVcOwnerId(vcApplyReqDto.getCredentialType(), content);
-//        VcAuditDomain vcAuditDomain = vcAuditService.getVcIdByVcOwner(vcOwnerId);
-//
-//        if (Tools.isNull(vcAuditDomain)) {
-//            throw new APIException(ExceptionEnum.SYS_ERROR, "check relay error, credential is not exist");
-//        }
-//
-//        VcRecordDomain vcRecordDomain = vcRecordService.getVcRecord4VcId(vcAuditDomain.getVcId());
-//        if (Tools.isNull(vcRecordDomain)) {
-//            throw new APIException(ExceptionEnum.SYS_ERROR, "check relay error, credential is not exist");
-//        }
-//        if (!vcRecordDomain.getCredentialType().equals(3)) {
-//            throw new APIException(ExceptionEnum.SYS_ERROR, "check relay error, credential type is not relay");
-//        }
-//        if (vcRecordDomain.getStatus().equals(StatusEnum.REVOKE.getCode())) {
-//            throw new APIException(ExceptionEnum.SYS_ERROR, "check relay error, credential has revoked");
-//        }
+        byte[] vcOwnerId = getVcOwnerId(vcApplyReqDto.getCredentialType(), content);
+        VcAuditDomain vcAuditDomain = vcAuditService.getVcIdByVcOwner(vcOwnerId);
+
+        if (!Tools.isNull(vcAuditDomain)) {
+            throw new APIException(ExceptionEnum.CREDENTIAL_AUDITED, "The application credential has been reviewed and approved");
+        }
     }
 
     private byte[] getBidEncode(ObjectIdentity objectIdentity) {
@@ -307,25 +296,25 @@ public class VcExternalBiz {
     }
 
     private byte[] getVcOwnerId(Integer credentialType, byte[] content) {
-        byte[] vcOwnerId = null;
         AbstractCrossChainCertificate cert = CrossChainCertificateFactory.createCrossChainCertificate(content);
         switch (CrossChainCertificateTypeEnum.valueOf(credentialType.byteValue())) {
             case PROOF_TRANSFORMATION_COMPONENT_CERTIFICATE:
                 PTCCredentialSubject ptcCredentialSubject = PTCCredentialSubject.decode(cert.getCredentialSubject());
-                vcOwnerId = getBidEncode(ptcCredentialSubject.getApplicant());
-                break;
+                return getBidEncode(ptcCredentialSubject.getApplicant());
             case RELAYER_CERTIFICATE:
                 RelayerCredentialSubject relayerCredentialSubject = RelayerCredentialSubject.decode(cert.getCredentialSubject());
-                vcOwnerId = getBidEncode(relayerCredentialSubject.getApplicant());
-                break;
+                return getBidEncode(relayerCredentialSubject.getApplicant());
             case DOMAIN_NAME_CERTIFICATE:
                 DomainNameCredentialSubject domainNameCredentialSubject = DomainNameCredentialSubject.decode(cert.getCredentialSubject());
-                vcOwnerId = getBidEncode(domainNameCredentialSubject.getApplicant());
-                break;
+                byte[] suffix = getBidEncode(domainNameCredentialSubject.getApplicant());
+                byte[] prefix = domainNameCredentialSubject.getDomainName().toBytes();
+                byte[] resultArray = new byte[prefix.length + suffix.length];
+                System.arraycopy(prefix, 0, resultArray, 0, prefix.length);
+                System.arraycopy(suffix, 0, resultArray, prefix.length, suffix.length);
+                return resultArray;
             default:
-                break;
+                return null;
         }
-        return vcOwnerId;
     }
 
     public DataResp<VcApplyRespDto> vcApply(VcApplyReqDto vcApplyReqDto) {

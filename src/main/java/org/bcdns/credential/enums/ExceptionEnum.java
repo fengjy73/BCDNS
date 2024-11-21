@@ -4,41 +4,41 @@ import lombok.Getter;
 
 @Getter
 public enum ExceptionEnum {
-    SUCCESS(0, "成功"),
+    SUCCESS(0, "success"),
 
-    PARAME_ERROR(1, "无效参数"),
+    PARAME_ERROR(1, "invalid param"),
 
-    SYS_ERROR(100100, "系统错误"),
+    SYS_ERROR(100100, "system error"),
 
-    PLATFORM_REPEAT_INIT(100101, "服务重复初始化"),
+    PLATFORM_REPEAT_INIT(100101, "server has inited"),
 
-    API_KEY_NOT_EXIST(100102, "api-key不存在"),
+    API_KEY_NOT_EXIST(100102, "api-key is not existed"),
 
-    API_KEY_ERROR(100103, "api-key错误"),
+    API_KEY_ERROR(100103, "api-key is wrong"),
 
-    ACCESS_TOKEN_INVALID(100104, "access token无效"),
+    ACCESS_TOKEN_INVALID(100104, "access token is invalid"),
 
-    SIGN_ERROR(100105, "验签失败"),
+    SIGN_ERROR(100105, "failed to verify sign"),
 
-    CREDENTIAL_APPLY_NOT_EXIST(100106, "凭证申请不存在"),
+    CREDENTIAL_APPLY_NOT_EXIST(100106, "credential apply is not existed"),
 
-    CREDENTIAL_BUILD_ERROR(100107, "凭证创建失败"),
+    CREDENTIAL_BUILD_ERROR(100107, "failed to create credential"),
 
-    CREDENTIAL_AUDITED(100108, "凭证申请已经被审核"),
+    CREDENTIAL_AUDITED(100108, "credential apply ha been audited"),
 
-    SUBMIT_TX_ERROR(100109, "提交交易失败"),
+    SUBMIT_TX_ERROR(100109, "failed to submit tx"),
 
-    CREDENTIAL_NOT_EXIST(100110, "凭证不存在"),
+    CREDENTIAL_NOT_EXIST(100110, "credential is not existed"),
 
-    CREDENTIAL_IS_REVOKE(100111, "凭证被注销"),
+    CREDENTIAL_IS_REVOKE(100111, "credential has been revoked"),
 
-    CREDENTIAL_IS_DOWNLOAD(100112, "凭证已下载"),
+    CREDENTIAL_IS_DOWNLOAD(100112, "credential has been downloaded"),
 
-    PRIVATE_KEY_IS_INVALID(100113, "无效私钥"),
+    PRIVATE_KEY_IS_INVALID(100113, "private key is invalid"),
 
-    PTCTRUSTROOT_SIGN_VERIFY_ERROR(100114, "ptctrustroot sign verify error"),
+    PTCTRUSTROOT_SIGN_VERIFY_ERROR(100114, "ptc trust root sign verify error"),
 
-    REGISTER_PTCTRUSTROOT_ERROR(100115, "register ptctrustroot error"),
+    REGISTER_PTCTRUSTROOT_ERROR(100115, "register ptc trust root error"),
 
     REGISTER_TPBTA_ERROR(100116, "register ptba error"),
 
@@ -46,7 +46,7 @@ public enum ExceptionEnum {
 
     TPBTA_BELONG_TYPE_ERROR(100118, "tpbta belong type error"),
 
-    KEYTYPE_ERROR(100119, "keytype error"),
+    KEYTYPE_ERROR(100119, "key type error"),
 
     CONTRACT_QUERY_ERROR(100120, "contract query error"),
 
@@ -56,7 +56,7 @@ public enum ExceptionEnum {
 
     TPBTA_LEVEL_ERROR(100123, "tpbta level error"),
 
-    FAILED_TO_DECRYPT_PRIVATE(100124, "解析密文私钥失败"),
+    FAILED_TO_DECRYPT_PRIVATE(100124, "failed to decrypt private key"),
     ;
     private final Integer errorCode;
     private final String message;
