@@ -44,18 +44,6 @@ java -cp BCDNS-tool-1.0-SNAPSHOT-jar-with-dependencies.jar org.example.ApplyTool
 java -cp BCDNS-tool-1.0-SNAPSHOT-jar-with-dependencies.jar org.example.ApplyTool domainName 申请人的私钥 区块链的公钥 申请的区块链域名 签名算法
 ```
 
-### **注册PTCTrustRoot参数：**
-
-| 参数号 | 说明                                      |
-| ------ | ----------------------------------------- |
-| 0      | 值为newPtcTrustRoot，指定注册PTCTrustRoot |
-| 1      | ptc的证书，为Base64编码格式               |
-| 2      | ptc的私钥，用于对TructRoot签名            |
-
-```
-java -cp BCDNS-tool-1.0-SNAPSHOT-jar-with-dependencies.jar org.example.ApplyTool newPtcTrustRoot ptc的证书 ptc的私钥
-```
-
 ### **解析CRS（Certificate Signing Request）即证书签名请求文件**
 
 CRS由relay和ptc的CLI命令生成

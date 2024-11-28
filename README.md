@@ -20,7 +20,7 @@ BCDNS将功能实现分为两部分，分别为凭证颁发和凭证上链，PTC
 
 # 架构
 
-![](https://github.com/caict-4iot-dev/BCDNS/tree/master/src/docs/images/bcdns.jpg)
+![](bcdns.png)
 
 区块链域名系统向网络提供权威服务，包括域名签发、跨链身份凭证、网络路由等功能。
 
@@ -62,7 +62,7 @@ docker run -itd --name redis-test -p 6379:6379 redis --requirepass 'YOUR_PWD' --
 
 **确保安装了AntChain Bridge Plugin SDK，详情请[见](https://github.com/AntChainOpenLabs/AntChainBridgePluginSDK?tab=readme-ov-file#%E6%9E%84%E5%BB%BA)*
 
-进入代码的根目录，运行mvn编译即可：
+进入代码的根目录，跳过单元测试，运行mvn编译即可：
 
 ```bash
 mvn clean package -Dmaven.test.skip=true
@@ -131,7 +131,7 @@ tree .
 
 - 合约部署
 
-  然后使用[星火合约编辑器](https://remix.learnblockchain.cn/#lang=zh&optimize=false&runs=200&evmVersion=null&version=soljson-v0.8.22+commit.4fc1097e.js)编译、部署合约到星火测试网上。其中部署过程中需要用到第一步用于星火令账户的私钥，可以在插件钱包中导出。星火合约编辑器使用说明请参考[教程](https://git.xinghuo.space/xinghuo-open-source/DLT/bcdns/-/blob/master/src/main/resources/contract/Remix合约IDE星火插件.pdf?ref_type=heads)。
+  然后使用[星火合约编辑器](https://remix.learnblockchain.cn/#lang=zh&optimize=false&runs=200&evmVersion=null&version=soljson-v0.8.22+commit.4fc1097e.js)编译、部署合约到星火测试网上。星火合约编辑器需要API-key才能够往链上发交易，API-key的申请请参考[星火链开放平台](https://bop.bitfactory.cn/home)。星火合约编辑器使用说明请参考[教程](https://bop.bitfactory.cn/serve)。
 
 ## 修改配置
 
@@ -182,7 +182,7 @@ object-identity.supernode.bid-private-key=xxx //星火链测试网超级节点�
 object-identity.issuer.bid-private-key=xxx //发证方私钥（采用加密形式），需要拥有星火令
 issue.decrypt.public-key=xxx //非对称加密公钥，用于解密超级节点私钥和发证方私钥
 
-run.type=0 //BCDNS服务运行模式，0为开发者体验模式，1为实际生产模式；生产模式和体验模式区别在于对于凭证申请的权限校验，实际生产模式，PTC的申请只有骨干节点有资格，Relayer的申请只有超级节点有资格，而体验模式为了简化流程，省去权限校验部分。
+run.type=0 //BCDNS服务运行模式，0为开发者体验模式，1为实际生产模式；生产模式和体验模式区别在于对于凭证申请的权限校验，实际生产模式，PTC的申请只有骨干节点和超杰节点有资格，Relayer的申请只有超级节点有资格，而体验模式为了简化流程，省去权限校验部分。
 ```
 
 ## 运行
@@ -193,13 +193,13 @@ run.type=0 //BCDNS服务运行模式，0为开发者体验模式，1为实际生
 mysql> source init.sql;
 ```
 
-数据库表单创建成功后，在`bcdns-credential-server`解压包根目录之下，运行一下命令即可：
+数据库表单创建成功后，在`bcdns-credential-server`解压包根目录之下，运行以下命令即可：
 
 ```bash
 ./bin/launch start
 ```
 
-日志文件存储在`logs`目录之下，通过日志查看到下面的输出即BCDNS服务启动成功：
+日志文件存储在`logs`目录下的wrapper.log中，通过日志查看到下面的输出即BCDNS服务启动成功：
 
 ```
 2023-12-27 09:55:20.991 INFO 23020 --- [main] o.s.b.w.embedded.tomcat.TomcatWebServer: Tomcat started on port(s): 8114 (http) with context path ''
@@ -214,7 +214,7 @@ mysql> source init.sql;
 
 **第一步：服务初始化**
 
-服务成功启动之后，调用`/vc/init`接口，完成服务初始化操作，生成BCDNS根证书和BCDNS管理员API-Key。BCDNS根证书由超级节点签发，为发证方进行可信背书；API-Key用于生成access token，辅助发证方进行权限校验以调用审核接口。
+服务成功启动之后，调用`/vc/init`接口，完成服务初始化操作，生成BCDNS根证书和BCDNS管理员`API-Key`。BCDNS根证书由配置的超级节点私钥进行签发，为发证方进行可信背书；`API-Key`用于生成`access token`，辅助发证方进行权限校验以调用相关接口。
 
 ```bash
 curl -X POST http://localhost:8114/internal/vc/init
@@ -232,7 +232,7 @@ curl -X POST http://localhost:8114/internal/vc/init
 
 **第二步：生成access token**
 
-调用`/internal/vc/get/accessToken`接口获取access token。将第一步初始化时得到的返回值填入下面的curl中。
+调用`/internal/vc/get/accessToken`接口获取`access token`。将第一步初始化时得到的返回值填入下面的curl中。
 
 ```bash
 curl -H "Content-Type: application/json" -X POST -d '{"apiKey":"you_apiKey","apiSecret":"you_apiSecret","issuerId":"you_issuerId"}' http://localhost:8114/internal/vc/get/accessToken
@@ -253,16 +253,9 @@ curl -H "Content-Type: application/json" -X POST -d '{"apiKey":"you_apiKey","api
 
 **第三步：申请PTC证书**
 
-调用/external/vc/apply接口，输入参数详情可查看src/docs/http-api接口word文档说明，test/java/org/bcdns/credential/ApplyTest的testPTCApply可以辅助生成PTC证书申请参数，直接Run或者Debug该函数即可。例如：
+调用`/external/vc/apply`接口，输入参数详情可查看`src/docs/BCDNS-api`接口word文档说明，`src/main/resources/tool`下的工具包可以辅助生成PTC证书申请参数，使用说明请查看目录下的README文件。
 
-```
-content:[0, 0, -127, 1, 0, 0, 0, 0, ..., 57, 101, 34, 125, 93, 125]
-credentialType:2
-publicKey:b0656617148...8b273f9c704
-sign:[-55, -50, 17, 21, ..., 88, -113, 53, 62, 12]
-```
-
-将上述得到的参数填入下面curl对应的地方。`content`使用上述返回content的byte数组即可，`credentialType`使用上述返回的credentialType即可，`publicKey`使用上面的Hex字符串，`sign`填入上面的byte数组。
+将上述使用工具包生成的参数填入下面curl对应的地方。`content`使用上述返回content的byte数组即可，`credentialType`使用上述返回的credentialType即可，`publicKey`使用上面的Hex字符串，`sign`填入上面的byte数组。
 
 ```plain
 curl -H "Content-Type: application/json" -X POST -d '{"content":you_content,"credentialType":you_credentialType,"publicKey":"you_publicKey","sign":you_sign}' http://localhost:8114/external/vc/apply
@@ -345,29 +338,9 @@ curl -H "Content-Type: application/json" -X POST -d '{"credentialId":"you_creden
 }
 ```
 
-Relayer证书和区块链域名证书的申请和审核与PTC证书一样，只需重复执行步骤三、四、五、六即可。
+Relayer证书申请与PTC证书一样，只需重复执行步骤三、四、五、六即可。区块链域名证书目前由中继代为申请，在添加区块链到跨链系统中时被调用。
 
-**第七步：下载BCDNS根证书**
-
-调用`/external/vc/root`接口下载BCDNS根证书。
-
-```plain
-curl -X POST http://localhost:8114/external/vc/root
-```
-
-返回类似下面的结果，`message`显示成功，`bcdnsRootCredential`为证书的Base64格式。
-
-```json
-{
-    "errorCode": 0,
-    "message": "成功",
-    "data": {
-        "bcdnsRootCredential": "AAAUAgAAA......"
-    }
-}
-```
-
-**第八步：注册PTC信任根**
+**第七步：注册PTC信任根**
 
 调用`/external/vc/add/ptctrustroot`接口注册PTC信任根。
 
@@ -390,7 +363,7 @@ curl -H "Content-Type:application/json" -X POST -d '{"ptcTrustRoot":"you_ptcTrus
 }
 ```
 
-**第九步：注册第三方信任锚TPBTA**
+**第八步：注册第三方信任锚TPBTA**
 
 调用`/external/vc/add/tpbta`接口注册第三方信任锚TPBTA。
 
@@ -412,6 +385,8 @@ curl -H "Content-Type: application/json" -X POST -d '{"vcId":"relayer_vcId","tpb
     }
 }
 ```
+
+步骤七和八目前在添加区块链过程中被中继调用。
 
 # 社区治理
 
