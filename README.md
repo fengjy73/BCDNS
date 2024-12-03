@@ -20,7 +20,8 @@ BCDNS将功能实现分为两部分，分别为凭证颁发和凭证上链，PTC
 
 # 架构
 
-![](bcdns.png)
+![bcdns](https://github.com/user-attachments/assets/c4bcdafc-522d-43e7-9eb4-233dd48369b5)
+
 
 区块链域名系统向网络提供权威服务，包括域名签发、跨链身份凭证、网络路由等功能。
 
