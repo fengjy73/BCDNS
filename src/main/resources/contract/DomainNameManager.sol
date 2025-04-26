@@ -46,7 +46,7 @@ contract DomainNameManager is Ownable {
         emit revokeDomainNameCert(vcId, domainName);
     }
 
-    function getCertById(string memory vcId) public view returns (bytes) {
+    function getCertById(string memory vcId) public view returns (bytes memory) {
         return idToCertMap[vcId].cert;
     }
 
@@ -54,7 +54,7 @@ contract DomainNameManager is Ownable {
         return idToCertMap[vcId].status;
     }
 
-    function getCertByName(string memory domainName) public view returns (bytes) {
+    function getCertByName(string memory domainName) public view returns (bytes memory) {
         return nameToCertMap[domainName].cert;
     }
 
